@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+   <head>
+      <title>Enterprise Login</title>
+   </head>
+   <body>
+      <div th:if="${param.error}">
+		<div th:if="${session.error}">
+		    <div class="alert alert-danger" th:text="${session.error}"></div>
+		</div>
+      </div>
+      <div th:if="${param.logout}">You have been logged out.</div>
+      <form th:action="@{/login}" method="post">
+         <div>
+            <label>User Name : <input type="text" placeholder="Enter Username" name="username" /></label>
+         </div>
+         <div>
+            <label>Password: <input type="password" placeholder="Enter Password" name="password" /></label>
+         </div>
+         <div>
+            <input type="submit" value="Sign In" />
+         </div>
+      </form>
+      <form th:action="@{/register}" method="get">
+         <div>
+      		<p>Don't have an account?</p>
+        	<input type="submit" value="Sign Up" />
+     	 </div>
+      </form>
+   </body>
+</html>

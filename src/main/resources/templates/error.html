@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+   <head>
+      <title>ERROR PAGE</title>
+   </head>
+   <body>
+      <div th:if="${param.logout}">You have been logged out.</div>
+      <div th:if="${methodNotAllowed}">
+        <p>This method is not allowed.</p>
+        <!-- You can customize the error message as needed -->
+    </div>
+    <p>You are seeing this page because you tried sending a post, patch, put or delete request</p>
+    <p>Use postman for passing non-login requests or request that are not of type get</p>
+    <form th:action="@{/login}" method="get">
+         <div>
+            <input type="submit" value="Back to Login" />
+         </div>
+      </form>
+      <p></p>
+      <form th:action="@{/logout}" method="post"> 
+         <input name="logout" type="submit" value="Sign Out"/> 
+      </form>
+    
+   </body>
+</html>

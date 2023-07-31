@@ -1,0 +1,39 @@
+<!DOCTYPE html> 
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3"> 
+   <head> 
+      <meta charset="ISO-8859-1"> 
+      <title>Enterprise Register</title>
+   </head> 
+   <body> 
+      <div>
+      	<form action="/register" method="post"> 
+         <div class="container"> 
+            <h1>Register</h1> 
+            <p>Please fill in this form to create an account.</p> 
+            <hr> 
+			<p></p>
+			<div th:if="${alreadyRegistered}">
+				<p>OOPS! User Already exists</p>
+			</div>
+			
+            <label for="username">
+            <b>Username</b>
+            </label> 
+            <input type="text" placeholder="Enter Username" name="username" id="username" required> 
+
+            <label for="password"><b>Password</b></label> 
+            <input type="password" placeholder="Enter Password" name="password" id="password" required> 
+
+            <button type="submit" class="registerbtn">Register</button> 
+         </div> 
+
+      	</form> 
+      	<form th:action="@{/login}" method="get">
+         	<div>
+      			<p>Already have an account?</p>
+        		<input type="submit" value="Log In" />
+     	 	</div>
+      	</form>
+      </div>
+   </body> 
+</html>
