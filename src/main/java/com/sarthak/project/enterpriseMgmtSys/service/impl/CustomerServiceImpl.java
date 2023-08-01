@@ -478,7 +478,7 @@ public class CustomerServiceImpl implements CustomerService {
 		ResponseDto response = new ResponseDto();
 		// name can be null, contain spaces or numbers, or be valid
 		// NOTE: no use case of requestCase as of now
-		if(name.matches(RegularExpressions.CUSTOMER_NAME_FORMAT)) {
+		if(name.matches(RegularExpressions.MOBILE_NUMBER_FORMAT)) {
 			logger.info("matched in validate function");
 			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
 		}
@@ -582,12 +582,26 @@ public class CustomerServiceImpl implements CustomerService {
 	
 	public Page<CustomerDetailsDTO> findPaginated(int pageNo, int pageSize){
 		try {
-		Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
-		Page<CustomerDetails> customerPage = customerRepository.findAll(pageable);
-        return customerPage.map(customer -> mapper.map(customer, CustomerDetailsDTO.class));
+			Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+			Page<CustomerDetails> customerPage = customerRepository.findAll(pageable);
+	        return customerPage.map(customer -> mapper.map(customer, CustomerDetailsDTO.class));
 		} catch(Exception e) {
+			logger.info(e.getMessage(),e);
 			return null;
 		}
+	}
+	
+	public int getPages() {
+		int pageSize = StatusResponse.PAGE_SIZE; // 5
+		double count = customerRepository.count(); // assuming count returns a double or float value
+		double floatPages = Math.ceil(count / pageSize); // 18.0 / 5 = 3.6 --> 4.0
+		int noOfPages = (int) floatPages; // 4
+		return noOfPages;
+	}
+	
+	public int getEmptyCells() {
+		int filledCells = (int) (customerRepository.count()%StatusResponse.PAGE_SIZE);//20%5=0
+		return (filledCells!=0) ? 5-filledCells : 0; 
 	}
 	
 }

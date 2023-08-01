@@ -34,5 +34,9 @@ public interface CustomerService {
 	
 	List<CardDetailsDTO> getCardsOfCustomer(String customerId);
 	
+	public int getPages();
+	
+	public int getEmptyCells();
+	
 	Page<CustomerDetailsDTO> findPaginated(int pageNo, int pageSize);
 }

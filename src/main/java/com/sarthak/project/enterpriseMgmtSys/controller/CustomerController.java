@@ -24,8 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
+import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
 import com.sarthak.project.enterpriseMgmtSys.payload.CardDetailsDTO;
 import com.sarthak.project.enterpriseMgmtSys.payload.CustomerDetailsDTO;
+import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.CustomerService;
 
 // using @RestController to avoid using @ResponseBody annotation
@@ -36,6 +38,8 @@ public class CustomerController {
 
 	@Autowired
 	private CustomerService customerService;
+	@Autowired
+	private CustomerRepository customerRepository;
 	
 	//POSTMAN / API CLIENTS
 	
@@ -106,9 +110,16 @@ public class CustomerController {
 	    if (acceptHeader != null && acceptHeader.contains("text/html")) {
 	        // Return the Thymeleaf template for the browser request
 	        logger.info("thymeleaf get all customers");
-	        ModelAndView modelAndView = new ModelAndView("getall");
-	        modelAndView.addObject("listCustomers", customerService.thymeleafGetAllCustomers());
-	        return modelAndView;
+	        return new ModelAndView("forward:/customers/getall/page/1");
+//	        ModelAndView modelAndView = new ModelAndView("getallPage");
+//	        
+//	        
+//			modelAndView.addObject("totalPages", customerService.getPages());
+//			modelAndView.addObject("currentPage", 1);
+//			modelAndView.addObject("totalItems", customerRepository.count());
+//			modelAndView.addObject("listCustomers",customerService.thymeleafGetAllCustomers());
+//			modelAndView.addObject("emptyCells", customerService.getEmptyCells());
+//		    return modelAndView;
 	    } else {
 	        logger.info("forwarding to @Post api/customers/getall from @Get /customers/getall");
 	        return new ModelAndView("forward:/api/customers/getall");
@@ -125,19 +136,19 @@ public class CustomerController {
 	    return modelAndView;
 	}
 	
-	@GetMapping("/page/{pageNo}")
+	@GetMapping("/customers/getall/page/{pageNo}")
 	public ModelAndView findPaginated(@PathVariable(value = "pageNo") int pageNo,
 								Model model) {
-		int pageSize = 5; //change as per requirement
-		Page<CustomerDetailsDTO> page = customerService.findPaginated(pageNo, pageSize);
+
+		Page<CustomerDetailsDTO> page = customerService.findPaginated(pageNo,StatusResponse.PAGE_SIZE);
 		List<CustomerDetailsDTO> listCustomers = page.getContent();
 		
-		ModelAndView modelAndView = new ModelAndView("getall");
-		modelAndView.addObject("totalPages", pageSize);
+		ModelAndView modelAndView = new ModelAndView("getallPage");
+		modelAndView.addObject("totalPages", customerService.getPages());
 		modelAndView.addObject("currentPage", pageNo);
 		modelAndView.addObject("totalItems", page.getTotalElements());
 		modelAndView.addObject("listCustomers",listCustomers);
-		
+		modelAndView.addObject("emptyCells", customerService.getEmptyCells());
 	    return modelAndView;
 	}
 	

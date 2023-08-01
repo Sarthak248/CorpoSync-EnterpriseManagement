@@ -12,6 +12,11 @@ public final class StatusResponse {
 	public static final int DELETE_REQUEST = 6;
 	public static final int SEARCH_REQUEST = 7;
 	
+	//PAGE
+	public static final int PAGE_SIZE = 5;
+//	public static final int SEARCH_REQUEST = 7;
+	
+	//STATUS
 	public static final String ACTIVE_STATUS = "ACTIVE";
 	public static final String DEACTIVE_STATUS = "DEACTIVE";
 
