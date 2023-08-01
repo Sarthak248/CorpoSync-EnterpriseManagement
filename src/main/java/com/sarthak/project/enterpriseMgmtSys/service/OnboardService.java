@@ -3,12 +3,14 @@ package com.sarthak.project.enterpriseMgmtSys.service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.ui.Model;
+
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.payload.UserDto;
 
 public interface OnboardService {
 	//Login with Thymeleaf
-	public String login(HttpServletRequest request, HttpSession session);
+	public String login(HttpServletRequest request, HttpSession session, Model model);
 	String getErrorMessage(HttpServletRequest request, String key);
 	
 	//Register with Thymeleaf

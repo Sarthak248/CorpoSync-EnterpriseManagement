@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
@@ -41,13 +42,11 @@ public class OnboardServiceImpl implements OnboardService {
     
     
 	// Retrieve the exception from the session
-	public String login(HttpServletRequest request, HttpSession session) { 
+	public String login(HttpServletRequest request, HttpSession session, Model model) { 
 	       // Retrieve the exception from the session
 		try {
 	       Exception exception = (Exception) request.getSession().getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
 	       logger.info("Recieved exception from getSession");
-	       if(exception!=null)	
-	    	   logger.error(exception.getMessage(),exception);
 	       if(exception!=null)
 	    	   logger.error(exception.getMessage(),exception);
 	       // Check if the exception is a BadCredentialsException
@@ -64,10 +63,14 @@ public class OnboardServiceImpl implements OnboardService {
 	           session.setAttribute("error", "Invalid username and password! - DEFAULT"); 
 	       } 
 	       logger.info("returning string login to thymeleaf");
+	       model.addAttribute("justLoggedIn", true);
+		   logger.info("add justLoggedIn attribute to model");
 	       return "index"; 
 	   } catch(Exception e) {
 		   logger.info("Caught error in controller");
 		   session.setAttribute("error", "User not found!");
+		   model.addAttribute("justLoggedIn", true);
+//		   logger.info("add justLoggedIn attribute to model");
            return "index";
 	   }
 	}

@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -476,9 +479,11 @@ public class CustomerServiceImpl implements CustomerService {
 		// name can be null, contain spaces or numbers, or be valid
 		// NOTE: no use case of requestCase as of now
 		if(name.matches(RegularExpressions.CUSTOMER_NAME_FORMAT)) {
+			logger.info("matched in validate function");
 			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
 		}
 		else {
+			logger.info("did not match in validate function");
 			response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
 			response.setMessage(StatusResponse.NAME_INVALID_FORMAT);
 		}
@@ -530,6 +535,59 @@ public class CustomerServiceImpl implements CustomerService {
 			break;
 		}
 		return false;
+	}
+	//THYMELEAF
+	
+	public List<CustomerDetailsDTO> thymeleafGetAllCustomers(){
+		try {
+		List<CustomerDetails> customers = customerRepository.findAll();
+		if (customers == null || customers.size() == 0) {
+			return null; //error page
+		}
+		List<CustomerDetailsDTO> allCustomers = customers.stream()
+				.map(customer -> mapper.map(customer, CustomerDetailsDTO.class)).collect(Collectors.toList());
+		List<CardDetailsDTO> allCards = cardRepository.findAll().stream()
+				.map(card -> mapper.map(card, CardDetailsDTO.class)).collect(Collectors.toList());
+
+		for (CustomerDetailsDTO customer : allCustomers) {
+			List<CardDetailsDTO> cardsOfCustomer = new ArrayList<CardDetailsDTO>();
+			for (CardDetailsDTO card : allCards) {
+				if (card.getCustomerId().equalsIgnoreCase(customer.getCustomerId())) {
+					cardsOfCustomer.add(card);
+					// allCards.remove(card);
+				}
+			}
+			customer.setAllCards(cardsOfCustomer);
+		}
+		return allCustomers;
+		} catch(Exception e) {
+			return null;
+		}
+	}
+	
+	public List<CardDetailsDTO> getCardsOfCustomer(String customerId){
+		try {
+		CustomerDetails customer = customerRepository.findById(customerId).orElse(null);
+		List<CardDetails> cards = customer.getListCards();
+		List<CardDetailsDTO> cardDtos = cards.stream()
+				.map(card -> mapper.map(card, CardDetailsDTO.class)).collect(Collectors.toList());
+		return cardDtos;
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			return null;
+		}
+		
+	}
+	
+	
+	public Page<CustomerDetailsDTO> findPaginated(int pageNo, int pageSize){
+		try {
+		Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+		Page<CustomerDetails> customerPage = customerRepository.findAll(pageable);
+        return customerPage.map(customer -> mapper.map(customer, CustomerDetailsDTO.class));
+		} catch(Exception e) {
+			return null;
+		}
 	}
 	
 }

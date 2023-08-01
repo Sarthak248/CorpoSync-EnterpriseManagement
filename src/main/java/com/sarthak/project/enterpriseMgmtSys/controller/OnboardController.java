@@ -1,5 +1,6 @@
 package com.sarthak.project.enterpriseMgmtSys.controller;
 
+import java.security.Principal;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest; 
 import javax.servlet.http.HttpSession;
@@ -30,6 +31,16 @@ public class OnboardController {
    //2 of the 4 are GetMapping that redirect to the other 2 Postmapping
    
    //THYMELEAF   
+   @GetMapping("/")
+   public String redir(HttpServletRequest request, HttpSession session,
+				Model model) {
+       Principal principal = request.getUserPrincipal();
+       if(principal!=null)
+    	   return "index";
+	   return "forward:/login";
+	    
+   } 
+   
    @GetMapping("/login")
    public String showLoginPage(HttpServletRequest request, HttpSession session,
 		   						Model model) {
@@ -39,7 +50,7 @@ public class OnboardController {
 	        // Return the Thymeleaf template for the browser request
 	    	logger.info("session setting attribute");
 	    	session.setAttribute("error", onboardService.getErrorMessage(request, "SPRING_SECURITY_LAST_EXCEPTION"));
-	    	model.addAttribute("justLoggedIn", true);
+//	    	model.addAttribute("justLoggedIn", true);
 	        return "login"; 
 	    } else {
 	    	logger.info("forwarding to @Post api/login from @Get /login");
@@ -51,8 +62,13 @@ public class OnboardController {
    public String login(HttpServletRequest request, HttpSession session,
 		   				Model model) { 
 	   logger.info("At /login post, passed request and session");
-	   model.addAttribute("justLoggedIn", true);
-       return onboardService.login(request, session);
+	   if(onboardService.login(request, session, model).equalsIgnoreCase("index")) {
+		   logger.info("reached the if to check string");
+		   model.addAttribute("justLoggedIn", true);
+		   return "index";
+	   }
+	   return "index";
+       
    }
    
    
