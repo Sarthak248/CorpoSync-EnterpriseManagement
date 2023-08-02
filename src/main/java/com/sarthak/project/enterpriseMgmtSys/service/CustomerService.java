@@ -1,6 +1,6 @@
 package com.sarthak.project.enterpriseMgmtSys.service;
 
-import java.util.List;
+//import java.util.List;
 
 import org.springframework.data.domain.Page;
 
@@ -30,13 +30,17 @@ public interface CustomerService {
 
 	ResponseDto searchCustomer(String input);
 	
-	List<CustomerDetailsDTO> thymeleafGetAllCustomers();
+	//List<CustomerDetailsDTO> thymeleafGetAllCustomers();
 	
-	List<CardDetailsDTO> getCardsOfCustomer(String customerId);
+	//List<CardDetailsDTO> getCardsOfCustomer(String customerId);
 	
-	public int getPages();
+	public int getPages(int requestCase, String customerId);
 	
-	public int getEmptyCells();
+	public int getEmptyCells(int requestCase, String customerId);
 	
-	Page<CustomerDetailsDTO> findPaginated(int pageNo, int pageSize);
+	Page<CustomerDetailsDTO> findPaginatedCustomers(int pageNo, int pageSize, String sortField, String direction);
+	
+	Page<CardDetailsDTO> findPaginatedCards(String customerId, int pageNo, int pageSize, String sortField, String direction);
+
+
 }

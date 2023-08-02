@@ -254,9 +254,9 @@ public class CardServiceImpl implements CardService{
 		try {
 		if(response!=null && response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
 			CardDetails cardDetails = cardRepository.findById(cardId).orElse(null);		
-			CustomerDetails customer = customerRepository.findById(cardDetails.getCustomerId()).orElse(null);
-			customer.setCardCount(customer.getCardCount()-1);
-			customerRepository.save(customer);
+//			CustomerDetails customer = customerRepository.findById(cardDetails.getCustomerId()).orElse(null);
+//			customer.setCardCount(customer.getCardCount()-1);
+//			customerRepository.save(customer);
 			CardDetailsDTO cardDto = new CardDetailsDTO();
 			cardDto.setAliasName(cardDetails.getAliasName());
 			//cardRepository.deleteById(cardId);

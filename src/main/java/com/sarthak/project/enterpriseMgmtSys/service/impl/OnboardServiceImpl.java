@@ -139,8 +139,8 @@ public class OnboardServiceImpl implements OnboardService {
 	    if (authentication != null && authentication.isAuthenticated()) {
 	        // Successful authentication
 	        // You can perform additional logic or return a success response here.
-	        response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
-	        response.setMessage("Login successful!");
+	        response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+	        response.setMessage("Please Login to Continue. Use /login");
 	    } else {
 	        // Authentication failed
 	        // You can handle different types of authentication errors here.

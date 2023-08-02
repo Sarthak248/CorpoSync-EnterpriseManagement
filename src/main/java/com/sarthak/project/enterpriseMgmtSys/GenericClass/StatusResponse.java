@@ -12,6 +12,9 @@ public final class StatusResponse {
 	public static final int DELETE_REQUEST = 6;
 	public static final int SEARCH_REQUEST = 7;
 	
+	public static final int CUSTOMER_REQUEST = 100;
+	public static final int CARD_REQUEST = 200;
+	
 	//PAGE
 	public static final int PAGE_SIZE = 5;
 //	public static final int SEARCH_REQUEST = 7;

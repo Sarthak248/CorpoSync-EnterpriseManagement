@@ -7,8 +7,10 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import com.sarthak.project.enterpriseMgmtSys.payload.CustomerDetailsDTO;
 import com.sarthak.project.enterpriseMgmtSys.repository.CardRepository;
 import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.CustomerService;
+import java.lang.reflect.Field;
 
 
 @Service
@@ -321,6 +324,7 @@ public class CustomerServiceImpl implements CustomerService {
 		}
 	}
 
+	@Override
 	public ResponseDto searchCustomer(String input) {
 		ResponseDto response = new ResponseDto();
 		try {
@@ -359,90 +363,128 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 	
 	public String checkInputType(String input) {
-		if(input.matches(RegularExpressions.MOBILE_NUMBER_FORMAT)) {
-			logger.info("Parameter matches mobile");
-			return "mobile";
+		try {
+			if(input.matches(RegularExpressions.MOBILE_NUMBER_FORMAT)) {
+				logger.info("Parameter matches mobile");
+				return "mobile";
+			}
+			else if(input.matches(RegularExpressions.CUSTOMER_ID_FORMAT))
+				return "id";
+			else if(input.matches(RegularExpressions.ENTERPRISE_ID_FORMAT))
+				return "enterpriseId";
+			else if(input.matches(RegularExpressions.CUSTOMER_NAME_FORMAT))
+				return "name";		
+			return "name";
+		}catch(Exception e) {
+				logger.error(e.getMessage(),e);
+				return null;
 		}
-		else if(input.matches(RegularExpressions.CUSTOMER_ID_FORMAT))
-			return "id";
-		else if(input.matches(RegularExpressions.ENTERPRISE_ID_FORMAT))
-			return "enterpriseId";
-		else if(input.matches(RegularExpressions.CUSTOMER_NAME_FORMAT))
-			return "name";		
-		return "name";
 	}
 	
 	public ResponseDto searchWithMobile(String input) {
 		ResponseDto response = new ResponseDto();
-		List<CustomerDetails> customer = customerRepository.findByCustomerMobile(input);
-		logger.info("Gone to Repo");
-		if(customer.isEmpty()) {
-			logger.info("No such mobile and cust");
-			response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+		try {
+			List<CustomerDetails> customer = customerRepository.findByCustomerMobile(input);
+			logger.info("Gone to Repo");
+			if(customer.isEmpty()) {
+				logger.info("No such mobile and cust");
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+				return response;
+			}
+			CustomerDetailsDTO customerDto = mapper.map(customer.get(0), CustomerDetailsDTO.class);
+			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+			response.setMessage(StatusResponse.FETCHED_INDIVIDUAL_CUSTOMER);
+			response.setResult(customerDto);
+			return response;
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
+			response.setMessage(StatusResponse.BAD_REQUEST);
 			return response;
 		}
-		CustomerDetailsDTO customerDto = mapper.map(customer.get(0), CustomerDetailsDTO.class);
-		response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
-		response.setMessage(StatusResponse.FETCHED_INDIVIDUAL_CUSTOMER);
-		response.setResult(customerDto);
-		return response;
 	}
 	
 	public ResponseDto searchWithEnterpriseId(String input) {
 		ResponseDto response = new ResponseDto();
-		List<CustomerDetails> customerDetails = customerRepository.findByEnterpriseId(input);
-		if(customerDetails.isEmpty()) {
-			logger.info("No such entpId and cust");
-			response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+		try {
+			List<CustomerDetails> customerDetails = customerRepository.findByEnterpriseId(input);
+			if(customerDetails.isEmpty()) {
+				logger.info("No such entpId and cust");
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+				return response;
+			}
+			List<CustomerDetailsDTO> customerDto = customerDetails.stream().map(customer -> mapper.map(customer, CustomerDetailsDTO.class)).collect(Collectors.toList());
+			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+			response.setMessage(StatusResponse.FETCHED_ALL_CUSTOMERS);
+			response.setResult(customerDto);
+			return response;
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
+			response.setMessage(StatusResponse.BAD_REQUEST);
 			return response;
 		}
-		List<CustomerDetailsDTO> customerDto = customerDetails.stream().map(customer -> mapper.map(customer, CustomerDetailsDTO.class)).collect(Collectors.toList());
-		response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
-		response.setMessage(StatusResponse.FETCHED_ALL_CUSTOMERS);
-		response.setResult(customerDto);
-		return response;
 	}
 	
 	public ResponseDto searchWithName(String input) {
 		ResponseDto response = new ResponseDto();
-		List<CustomerDetails> customerDetails = customerRepository.findByCustomerName(input);
-		if(customerDetails.isEmpty()) {
-			logger.info("No such Name and cust");
-			response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+		try {
+			List<CustomerDetails> customerDetails = customerRepository.findByCustomerName(input);
+			if(customerDetails.isEmpty()) {
+				logger.info("No such Name and cust");
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+				return response;
+			}
+			List<CustomerDetailsDTO> customerDto = customerDetails.stream().map(customer -> mapper.map(customer, CustomerDetailsDTO.class)).collect(Collectors.toList());
+			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+			response.setMessage(StatusResponse.FETCHED_ALL_CUSTOMERS);
+			response.setResult(customerDto);
+			return response;
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
+			response.setMessage(StatusResponse.BAD_REQUEST);
 			return response;
 		}
-		List<CustomerDetailsDTO> customerDto = customerDetails.stream().map(customer -> mapper.map(customer, CustomerDetailsDTO.class)).collect(Collectors.toList());
-		response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
-		response.setMessage(StatusResponse.FETCHED_ALL_CUSTOMERS);
-		response.setResult(customerDto);
-		return response;
 	}
 	
 	// MOIBLE REGEX FORMAT CHECK
 	public boolean validFormatOfMobile(String mobile) {
-		return mobile.matches(RegularExpressions.MOBILE_NUMBER_FORMAT); // if mobile parameter matches the regex, true boolean is returned
+		try {
+			return mobile.matches(RegularExpressions.MOBILE_NUMBER_FORMAT); // if mobile parameter matches the regex, true boolean is returned
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			return false;
+		}
 	}
 
 	// VALIDATE MOBILE ON CREATION
 	public ResponseDto validateNumberOnCreation(String number) {
 		ResponseDto statusResponse = new ResponseDto();
-		if (!validFormatOfMobile(number)) {
-			statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			statusResponse.setMessage(StatusResponse.MOBILE_INVALID_FORMAT);
-			return statusResponse;
-		}
-		// check for already existing mobileNumber
-		else if (customerRepository.existsByMobileNumber(number)) {
-			statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			statusResponse.setMessage(StatusResponse.MOBILE_ALREADY_EXISTS);
-			return statusResponse;
-		}
-		// the mobile is unique and can be updated
-		else {
-			statusResponse.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+		try {
+			if (!validFormatOfMobile(number)) {
+				statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				statusResponse.setMessage(StatusResponse.MOBILE_INVALID_FORMAT);
+				return statusResponse;
+			}
+			// check for already existing mobileNumber
+			else if (customerRepository.existsByMobileNumber(number)) {
+				statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				statusResponse.setMessage(StatusResponse.MOBILE_ALREADY_EXISTS);
+				return statusResponse;
+			}
+			// the mobile is unique and can be updated
+			else {
+				statusResponse.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+				return statusResponse;
+			}
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			statusResponse.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
+			statusResponse.setMessage(StatusResponse.BAD_REQUEST);
 			return statusResponse;
 		}
 	}
@@ -450,139 +492,120 @@ public class CustomerServiceImpl implements CustomerService {
 	// VALIDATE MOBILE ON UPDATE
 	public ResponseDto validateNumberOnUpdate(CustomerDetailsDTO customer) {
 		ResponseDto statusResponse = new ResponseDto();
-		if (customer.getCustomerMobile() == null) {
-		}
-		// if mobile number entered is of incorrect format
-		else if (!validFormatOfMobile(customer.getCustomerMobile())) {
-			statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			statusResponse.setMessage(StatusResponse.MOBILE_ALREADY_EXISTS);
+		try {
+			if (customer.getCustomerMobile() == null) {
+			}
+			// if mobile number entered is of incorrect format
+			else if (!validFormatOfMobile(customer.getCustomerMobile())) {
+				statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				statusResponse.setMessage(StatusResponse.MOBILE_ALREADY_EXISTS);
+				return statusResponse;
+			}
+			// Condition 1: Mobile number entered already exists in database
+			// Condition 2: This no.'s associated Id is not the same as the Id entered in
+			// request body(Entered mob. no. is not of the customer that is being updated)
+			// if both conditions are true, an exception is thrown
+			else if (customerRepository.existsByMobileNumber(customer.getCustomerMobile()) && !customerRepository
+					.checkIdWithNumber(customer.getCustomerMobile()).equalsIgnoreCase(customer.getCustomerId())
+					&& customer.getCustomerId() != null) {
+				statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				statusResponse.setMessage("Mobile Number already exists");
+				return statusResponse;
+			}
+			statusResponse.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+			return statusResponse;
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			statusResponse.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
+			statusResponse.setMessage(StatusResponse.BAD_REQUEST);
 			return statusResponse;
 		}
-		// Condition 1: Mobile number entered already exists in database
-		// Condition 2: This no.'s associated Id is not the same as the Id entered in
-		// request body(Entered mob. no. is not of the customer that is being updated)
-		// if both conditions are true, an exception is thrown
-		else if (customerRepository.existsByMobileNumber(customer.getCustomerMobile()) && !customerRepository
-				.checkIdWithNumber(customer.getCustomerMobile()).equalsIgnoreCase(customer.getCustomerId())
-				&& customer.getCustomerId() != null) {
-			statusResponse.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			statusResponse.setMessage("Mobile Number already exists");
-			return statusResponse;
-		}
-		statusResponse.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
-		return statusResponse;
 	}
 	
 	//VALIDATE NAME ON UPDATE/CREATE
 	public ResponseDto validateCustomerName(String name, int requestCase) {
 		ResponseDto response = new ResponseDto();
-		// name can be null, contain spaces or numbers, or be valid
-		// NOTE: no use case of requestCase as of now
-		if(name.matches(RegularExpressions.MOBILE_NUMBER_FORMAT)) {
-			logger.info("matched in validate function");
-			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+		try {
+			// name can be null, contain spaces or numbers, or be valid
+			// NOTE: no use case of requestCase as of now
+			if(name.matches(RegularExpressions.MOBILE_NUMBER_FORMAT)) {
+				logger.info("matched in validate function");
+				response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+			}
+			else {
+				logger.info("did not match in validate function");
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.NAME_INVALID_FORMAT);
+			}
+			return response;
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
+			response.setMessage(StatusResponse.BAD_REQUEST);
+			return response;
 		}
-		else {
-			logger.info("did not match in validate function");
-			response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			response.setMessage(StatusResponse.NAME_INVALID_FORMAT);
-		}
-		return response;
 	}
 	
 	// CHECKS FOR BAD REQUESTS
 	public boolean validRequest(CustomerDetailsDTO customerDto, int requestCase) {
-		switch (requestCase) {
-		//create - paramters: name, mobile, enterprise
-		case 1:
-			//not null parameters
-			if(customerDto.getCustomerMobile() != null &&
-				customerDto.getCustomerName() != null &&
-				customerDto.getEnterpriseId() != null) { // null parametrs
-				if(customerDto.getAllCards() == null &&
-					customerDto.getStatus() == null &&
-					customerDto.getCustomerId() == null)
-					return true;
-			}
-			return false;
-		//getall - parameters: none
-		case 2:
-			if(customerDto == null)
-				return true;
-			return false;
-		//getbyid - paramters: (id)
-		case 3:
-			if(customerDto == null)
-				return true;
-			return false;
-		//update - parameters: (id), optionally- name, mobile, enterprise, request can't be empty
-		case 4:
-			if(customerDto.getCustomerMobile() != null ||
-				customerDto.getCustomerName() != null ||
-				customerDto.getEnterpriseId() != null) { // null parameters
-				if(customerDto.getAllCards() == null &&
-					customerDto.getStatus() == null &&
-					customerDto.getCustomerId() == null)
-					return true;
-			}
-			return false;
-		//delete - parameters: (id)
-		case 5:
-			if(customerDto == null)
-				return true;
-			return false;
-		default:
-			break;
-		}
-		return false;
-	}
-	//THYMELEAF
-	
-	public List<CustomerDetailsDTO> thymeleafGetAllCustomers(){
 		try {
-		List<CustomerDetails> customers = customerRepository.findAll();
-		if (customers == null || customers.size() == 0) {
-			return null; //error page
-		}
-		List<CustomerDetailsDTO> allCustomers = customers.stream()
-				.map(customer -> mapper.map(customer, CustomerDetailsDTO.class)).collect(Collectors.toList());
-		List<CardDetailsDTO> allCards = cardRepository.findAll().stream()
-				.map(card -> mapper.map(card, CardDetailsDTO.class)).collect(Collectors.toList());
-
-		for (CustomerDetailsDTO customer : allCustomers) {
-			List<CardDetailsDTO> cardsOfCustomer = new ArrayList<CardDetailsDTO>();
-			for (CardDetailsDTO card : allCards) {
-				if (card.getCustomerId().equalsIgnoreCase(customer.getCustomerId())) {
-					cardsOfCustomer.add(card);
-					// allCards.remove(card);
+			switch (requestCase) {
+			//create - paramters: name, mobile, enterprise
+			case 1:
+				//not null parameters
+				if(customerDto.getCustomerMobile() != null &&
+					customerDto.getCustomerName() != null &&
+					customerDto.getEnterpriseId() != null) { // null parametrs
+					if(customerDto.getAllCards() == null &&
+						customerDto.getStatus() == null &&
+						customerDto.getCustomerId() == null)
+						return true;
 				}
+				return false;
+			//getall - parameters: none
+			case 2:
+				if(customerDto == null)
+					return true;
+				return false;
+			//getbyid - paramters: (id)
+			case 3:
+				if(customerDto == null)
+					return true;
+				return false;
+			//update - parameters: (id), optionally- name, mobile, enterprise, request can't be empty
+			case 4:
+				if(customerDto.getCustomerMobile() != null ||
+					customerDto.getCustomerName() != null ||
+					customerDto.getEnterpriseId() != null) { // null parameters
+					if(customerDto.getAllCards() == null &&
+						customerDto.getStatus() == null &&
+						customerDto.getCustomerId() == null)
+						return true;
+				}
+				return false;
+			//delete - parameters: (id)
+			case 5:
+				if(customerDto == null)
+					return true;
+				return false;
+			default:
+				break;
 			}
-			customer.setAllCards(cardsOfCustomer);
-		}
-		return allCustomers;
-		} catch(Exception e) {
-			return null;
-		}
-	}
-	
-	public List<CardDetailsDTO> getCardsOfCustomer(String customerId){
-		try {
-		CustomerDetails customer = customerRepository.findById(customerId).orElse(null);
-		List<CardDetails> cards = customer.getListCards();
-		List<CardDetailsDTO> cardDtos = cards.stream()
-				.map(card -> mapper.map(card, CardDetailsDTO.class)).collect(Collectors.toList());
-		return cardDtos;
+			return false;
 		} catch(Exception e) {
 			logger.error(e.getMessage(),e);
-			return null;
+			return false;
 		}
-		
 	}
 	
-	
-	public Page<CustomerDetailsDTO> findPaginated(int pageNo, int pageSize){
+	@Override
+	public Page<CustomerDetailsDTO> findPaginatedCustomers(int pageNo, int pageSize, String sortField,
+													String direction){
 		try {
-			Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+			Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+						Sort.by(sortField).ascending() :
+						Sort.by(sortField).descending();
+			Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
 			Page<CustomerDetails> customerPage = customerRepository.findAll(pageable);
 	        return customerPage.map(customer -> mapper.map(customer, CustomerDetailsDTO.class));
 		} catch(Exception e) {
@@ -591,17 +614,111 @@ public class CustomerServiceImpl implements CustomerService {
 		}
 	}
 	
-	public int getPages() {
-		int pageSize = StatusResponse.PAGE_SIZE; // 5
-		double count = customerRepository.count(); // assuming count returns a double or float value
-		double floatPages = Math.ceil(count / pageSize); // 18.0 / 5 = 3.6 --> 4.0
-		int noOfPages = (int) floatPages; // 4
-		return noOfPages;
+	@Override
+	public int getPages(int requestCase, String customerId) {
+		try {
+			int pageSize, noOfPages;
+			double count, floatPages;
+			switch (requestCase) {
+				case 100: // customer request
+					pageSize = StatusResponse.PAGE_SIZE; // 5
+					count = customerRepository.count(); // assuming count returns a double or float value
+					floatPages = Math.ceil(count / pageSize); // 18.0 / 5 = 3.6 --> 4.0
+					noOfPages = (int) floatPages; // 4
+					return noOfPages;
+				case 200: //card request
+					pageSize = StatusResponse.PAGE_SIZE;
+	//				count is the number of cards that the customer has
+					count = customerRepository.findById(customerId).orElse(null).getCardCount();					
+					floatPages = Math.ceil(count / pageSize); // 18.0 / 5 = 3.6 --> 4.0
+					noOfPages = (int) floatPages; // 4
+					return (noOfPages==0)?1:noOfPages;
+				default:
+					return -1;
+			}
+		
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			return -1;
+		}
 	}
 	
-	public int getEmptyCells() {
-		int filledCells = (int) (customerRepository.count()%StatusResponse.PAGE_SIZE);//20%5=0
-		return (filledCells!=0) ? 5-filledCells : 0; 
+	@Override
+	public int getEmptyCells(int requestCase, String customerId) {
+		try {
+			int filledCells;
+			switch (requestCase) {
+			case 100: //customer request
+				filledCells = (int) (customerRepository.count()%StatusResponse.PAGE_SIZE);//20%5=0
+				return (filledCells!=0) ? StatusResponse.PAGE_SIZE-filledCells : 0;
+			case 200: //card request 
+				filledCells = (int) (customerRepository.findById(customerId).orElse(null).getCardCount()%StatusResponse.PAGE_SIZE);//20%5=0
+				if(filledCells==0 && customerRepository.findById(customerId).orElse(null).getCardCount() == 0)
+					return 5;
+				return (filledCells!=0) ? StatusResponse.PAGE_SIZE-filledCells : 0;				
+			default:
+				return -1;
+			}
+		
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			return -1;
+		}
 	}
 	
-}
+	@Override
+	public Page<CardDetailsDTO> findPaginatedCards(String customerId, int pageNo, 
+		    int pageSize, String sortField, String direction) {
+		    try {
+		        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+	                Sort.by(sortField).ascending() :
+	                Sort.by(sortField).descending();
+		        logger.info(sort.toString());
+		        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
+
+		        CustomerDetails customer = customerRepository.findById(customerId).orElse(null);
+		        List<CardDetails> cards = customer.getListCards();
+		        List<CardDetailsDTO> cardDtos = cards.stream()
+		                .map(card -> mapper.map(card, CardDetailsDTO.class))
+		                .collect(Collectors.toList());
+
+		        
+		     // Get the field from CardDetailsDTO based on sortField using Reflection
+		        Field field = CardDetailsDTO.class.getDeclaredField(sortField);
+		        field.setAccessible(true);
+
+		        // Sort the cardDtos list based on the specified sorting order and field
+		        cardDtos.sort((card1, card2) -> {
+		            try {
+		                Comparable value1 = (Comparable) field.get(card1);
+		                Comparable value2 = (Comparable) field.get(card2);
+		                int comparison = value1.compareTo(value2);
+		                return direction.equalsIgnoreCase("asc") ? comparison : -comparison;
+		            } catch (Exception e) {
+		                // Handle exception if the field does not exist or is inaccessible
+		            	logger.info("field does not exist or is inaccessible");
+		                e.printStackTrace();
+		                return 0;
+		            }
+		        });
+		        
+		        // Calculate the starting index and the ending index of the current page
+		        int start = (int) pageable.getOffset();
+		        int end = Math.min((start + pageable.getPageSize()), cardDtos.size());
+       
+		        
+		     // Create a sublist of cardDtos for the current page
+		        List<CardDetailsDTO> pageContent = cardDtos.subList(start, end);
+		        
+		        // Create a PageImpl from the sublist and the pageable object
+		        return new PageImpl<>(pageContent, pageable, cardDtos.size());
+		    } catch (Exception e) {
+		        logger.info(e.getMessage(), e);
+		        return null;
+		    }
+		}
+
+	
+	
+	
+} // end class

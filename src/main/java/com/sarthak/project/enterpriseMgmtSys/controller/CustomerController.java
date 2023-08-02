@@ -1,6 +1,6 @@
 package com.sarthak.project.enterpriseMgmtSys.controller;
 
-import java.util.List;
+//import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -8,7 +8,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+//import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -25,9 +25,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
-import com.sarthak.project.enterpriseMgmtSys.payload.CardDetailsDTO;
+//import com.sarthak.project.enterpriseMgmtSys.payload.CardDetailsDTO;
 import com.sarthak.project.enterpriseMgmtSys.payload.CustomerDetailsDTO;
-import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
+//import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.CustomerService;
 
 // using @RestController to avoid using @ResponseBody annotation
@@ -38,8 +38,8 @@ public class CustomerController {
 
 	@Autowired
 	private CustomerService customerService;
-	@Autowired
-	private CustomerRepository customerRepository;
+//	@Autowired
+//	private CustomerRepository customerRepository;
 	
 	//POSTMAN / API CLIENTS
 	
@@ -103,54 +103,66 @@ public class CustomerController {
 	
 	//THYMLEAF
 	
+	//REDIRECTS
 	@GetMapping("/customers/getall")
 	public ModelAndView redirectGetall(HttpServletRequest request, HttpSession session, Model model) {
-	    logger.info("at @Get /login");
-	    String acceptHeader = request.getHeader("Accept");
-	    if (acceptHeader != null && acceptHeader.contains("text/html")) {
-	        // Return the Thymeleaf template for the browser request
-	        logger.info("thymeleaf get all customers");
-	        return new ModelAndView("forward:/customers/getall/page/1");
-//	        ModelAndView modelAndView = new ModelAndView("getallPage");
-//	        
-//	        
-//			modelAndView.addObject("totalPages", customerService.getPages());
-//			modelAndView.addObject("currentPage", 1);
-//			modelAndView.addObject("totalItems", customerRepository.count());
-//			modelAndView.addObject("listCustomers",customerService.thymeleafGetAllCustomers());
-//			modelAndView.addObject("emptyCells", customerService.getEmptyCells());
-//		    return modelAndView;
+	    if (request.getHeader("Accept") != null && request.getHeader("Accept").contains("text/html")) {
+	        return new ModelAndView("forward:/customers/getall/page/1/customerId/asc");
 	    } else {
-	        logger.info("forwarding to @Post api/customers/getall from @Get /customers/getall");
 	        return new ModelAndView("forward:/api/customers/getall");
 	    }
 	}
 	
 	@GetMapping("/cardsOfCustomer")
-	public ModelAndView viewCustomerCards(@RequestParam("customerId") String customerId) {
-		
-	    List<CardDetailsDTO> cardsOfCustomer = customerService.getCardsOfCustomer(customerId);
-	    ModelAndView modelAndView = new ModelAndView("cardsOfCustomer");
-	    modelAndView.addObject("cards", cardsOfCustomer);
-	    modelAndView.addObject("customerId", customerId);
-	    return modelAndView;
+	public ModelAndView viewCustomerCards(@RequestParam("customerId") String customerId) {	    
+	    logger.info("at @Get /cardsOfCustomer");
+	        // Return the Thymeleaf template for the browser request
+        return new ModelAndView("forward:/customers/"+customerId+"/getall/page/1/cardId/asc");
+	    
 	}
 	
-	@GetMapping("/customers/getall/page/{pageNo}")
+	//FORWARDS TO
+	@GetMapping("/customers/getall/page/{pageNo}/{field}/{dir}")
 	public ModelAndView findPaginated(@PathVariable(value = "pageNo") int pageNo,
-								Model model) {
-
-		Page<CustomerDetailsDTO> page = customerService.findPaginated(pageNo,StatusResponse.PAGE_SIZE);
-		List<CustomerDetailsDTO> listCustomers = page.getContent();
-		
+									@PathVariable(value = "field") String sortField,
+									@PathVariable(value = "dir") String direction,
+								Model model) {		
 		ModelAndView modelAndView = new ModelAndView("getallPage");
-		modelAndView.addObject("totalPages", customerService.getPages());
+		modelAndView.addObject("totalPages", customerService.getPages(StatusResponse.CUSTOMER_REQUEST,null));
 		modelAndView.addObject("currentPage", pageNo);
-		modelAndView.addObject("totalItems", page.getTotalElements());
-		modelAndView.addObject("listCustomers",listCustomers);
-		modelAndView.addObject("emptyCells", customerService.getEmptyCells());
+		modelAndView.addObject("totalItems", customerService.findPaginatedCustomers(pageNo,StatusResponse.PAGE_SIZE,
+				sortField, direction).getTotalElements());
+		modelAndView.addObject("listCustomers",customerService.findPaginatedCustomers(pageNo,StatusResponse.PAGE_SIZE,
+				sortField, direction).getContent());
+		modelAndView.addObject("emptyCells", customerService.getEmptyCells(StatusResponse.CUSTOMER_REQUEST,null));
+		
+		modelAndView.addObject("sortField", sortField);
+		modelAndView.addObject("direction", direction);
+		modelAndView.addObject("reverseSortDirection", (direction.equalsIgnoreCase("asc"))?"desc":"asc");
+		
 	    return modelAndView;
 	}
 	
+	@GetMapping("/customers/{customerId}/getall/page/{pageNo}/{sortField}/{direction}")
+	public ModelAndView findPaginatedCards(@PathVariable(value = "customerId") String customerId,
+									@PathVariable(value = "pageNo") int pageNo,
+									@PathVariable(value = "sortField") String sortField,
+									@PathVariable(value = "direction") String direction,
+								Model model) {
+		ModelAndView modelAndView = new ModelAndView("cardsOfCustomer");
+		modelAndView.addObject("totalPages", customerService.getPages(StatusResponse.CARD_REQUEST,customerId));
+		modelAndView.addObject("currentPage", pageNo);
+		modelAndView.addObject("totalItems", customerService.findPaginatedCards(customerId,pageNo,StatusResponse.PAGE_SIZE,
+				sortField, direction).getTotalElements());
+		modelAndView.addObject("cards",customerService.findPaginatedCards(customerId,pageNo,StatusResponse.PAGE_SIZE,
+				sortField, direction).getContent());
+		modelAndView.addObject("emptyCells", customerService.getEmptyCells(StatusResponse.CARD_REQUEST,customerId));
+		
+		modelAndView.addObject("sortField", sortField);
+		modelAndView.addObject("direction", direction);
+		modelAndView.addObject("reverseSortDirection", (direction.equalsIgnoreCase("asc"))?"desc":"asc");
+		
+		return modelAndView;
+	}
 	
 }
