@@ -18,14 +18,16 @@ import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
 import com.sarthak.project.enterpriseMgmtSys.entity.User;
 import com.sarthak.project.enterpriseMgmtSys.payload.UserDto;
 import com.sarthak.project.enterpriseMgmtSys.repository.UserRepository;
-import com.sarthak.project.enterpriseMgmtSys.service.OnboardService;
+import com.sarthak.project.enterpriseMgmtSys.service.AuthenticationService;
+
+import ch.qos.logback.core.status.Status;
 
 import javax.servlet.http.HttpServletRequest; 
 import javax.servlet.http.HttpSession;
 
 @Service
-public class OnboardServiceImpl implements OnboardService {
-	private static final Logger logger = LoggerFactory.getLogger(OnboardServiceImpl.class);
+public class AuthenticationServiceImpl implements AuthenticationService {
+	private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 	@Autowired
     private UserDetailsManager userDetailsManager;
 
@@ -96,7 +98,7 @@ public class OnboardServiceImpl implements OnboardService {
 	   }
 
 	@Override
-    public ResponseDto addUser(String username, String password) {
+    public ResponseDto addUser(String username, String password, String email) {
 		ResponseDto response = new ResponseDto();
         // Check if the user already exists in the system
         if (userRepository.findUserByUsername(username).isPresent()) {
@@ -107,11 +109,18 @@ public class OnboardServiceImpl implements OnboardService {
         	//throw new IllegalArgumentException("User with username already exists: " + username);
             
         }
+        if(userRepository.findUserByEmail(email).isPresent()) {
+        	logger.info("email already exists",email);
+            //map to /register and 
+        	response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+        	return response;
+        }
 
         // Create the new user
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
+        user.setEmail(email);
         user.setAccountNonLocked(true);
         userDetailsManager.createUser(user);
         logger.info("manager created user");
@@ -149,6 +158,104 @@ public class OnboardServiceImpl implements OnboardService {
 	    }
 
 	    return response;
+	}
+
+	@Override
+	public ResponseDto forgotPass(String userName) {
+		//first check if user exists
+		// then ask to complete
+		ResponseDto response = new ResponseDto();
+		User user = userRepository.findUserByUsername(userName).orElse(null);
+		try {
+			if(user.equals(null) || user==null) {
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				logger.info("In forgot, no such user exists in db");
+				return response;
+			}
+			else {
+				response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+				UserDto userDto = new UserDto();
+				userDto.setUsername(user.getUsername());
+				userDto.setEncodedEmail(encodeEmail(user.getEmail()));
+				userDto.setEmail(user.getEmail());
+				logger.info("encoded email successfully");
+				response.setResult(userDto);
+				return response;				
+			}
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR);
+			return response;
+		}
+	}
+	
+	@Override
+	public ResponseDto verifyEmail(UserDto userDto, String email) {
+		ResponseDto response = new ResponseDto();
+		try {
+			if(userDto.getEmail().equalsIgnoreCase(email)) {
+				response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+				return response;
+			}
+			else {
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				return response;
+			}
+		} catch(Exception e){
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR);
+			return response;
+		}
+	}
+
+	@Override
+	public ResponseDto resetPass(UserDto userDto, String newPass, String confirmPass) {
+		ResponseDto response = new ResponseDto();
+		try {
+			if(!newPass.equalsIgnoreCase(confirmPass)) {
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				return response;
+			}
+			else {
+				//atp we can succesfully reset the password using password encoder
+				logger.info(String.format("Changing password of user now, user name : %s", userDto.getUsername()));
+				User user = userRepository.findUserByUsername(userDto.getUsername()).orElse(null);
+				if(user==null) {
+					logger.info(String.format("user is null %d", 404));
+				}
+				else {
+					logger.info(String.format("user is not null, proceeding to encode %d", 200));
+				}
+				user.setPassword(passwordEncoder.encode(newPass));
+//				userDetailsManager.createUser(user);
+//		        logger.info("manager created user");
+		        userRepository.save(user);
+		        logger.info("db saved user");
+		        
+		        UserDto userResponse = mapper.map(user, UserDto.class);
+		        response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+		        response.setResult(userResponse);
+		        
+		        return response;
+			}
+		} catch(Exception e) {
+			logger.info("At error, resetPass method, caught exception");
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR);
+			return response;
+		}
+	}
+	
+	public static String encodeEmail(String email) { //method assumes that email has @ and .com (proper email regex), atleast 4 letters before @
+		//sarthak24champ@gmail.com --> sar***********@gmail.com
+		String encoded = "";
+		String parts[] = email.split("@");
+		String name = parts[0].substring(0,3);
+		String domain = "@"+parts[1];
+		int charsRestricted = email.length()-4-parts[1].length();
+		
+		encoded+=name+"*".repeat(charsRestricted)+domain;
+		return encoded;
 	}
 
 } //end class

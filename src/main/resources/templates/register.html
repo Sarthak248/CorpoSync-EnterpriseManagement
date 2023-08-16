@@ -20,6 +20,9 @@
 				<p>OOPS! User Already exists</p>
 			</div>
 			
+			<label for="email"><b>Email</b></label> 
+            <input type="text" placeholder="Enter Email" name="email" id="email" required> 
+			
             <label for="username">
             <b>Username</b>
             </label> 
@@ -34,8 +37,9 @@
       	</form> 
       	<form th:action="@{/login}" method="get">
          	<div>
-      			<p>Already have an account?</p>
-        		<input type="submit" value="Log In" />
+      			<p></p>
+      			<p></p>
+        		<input type="submit" value="Already have an account? Log In" />
      	 	</div>
       	</form>
       </div>

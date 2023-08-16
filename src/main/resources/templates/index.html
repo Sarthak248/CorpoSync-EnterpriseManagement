@@ -17,7 +17,11 @@
 	      	</div>
 	      <p></p>
 	      <form th:action="@{/customers/getall}" method="get"> 
-	         <input name="logout" type="submit" value="View all Customers"/> 
+	         <input name="viewall" type="submit" value="View all Customers"/> 
+	      </form>
+	      <p></p>
+	      <form th:action="@{/redirectToReset}" method="get"> 
+	         <input name="reset" type="submit" value="Reset Password"/> 
 	      </form>
 	      <p></p>
 	      <form th:action="@{/logout}" method="post"> 

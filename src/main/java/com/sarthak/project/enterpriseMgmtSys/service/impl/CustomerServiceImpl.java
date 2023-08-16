@@ -60,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
 			response = validateNumberOnCreation(customerDetailsDTO.getCustomerMobile());
 			if (response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
 				logger.info("Mobile Number is valid on creation. Proceeding to check name");
-				response = validateCustomerName(customerDetailsDTO.getCustomerMobile(), StatusResponse.CREATE_REQUEST);
+				response = validateCustomerName(customerDetailsDTO.getCustomerName(), StatusResponse.CREATE_REQUEST);
 				if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
 					customer.setCustomerId(idGen.generateCustomerId());
 					customer.setCustomerName(customerDetailsDTO.getCustomerName());
@@ -98,6 +98,10 @@ public class CustomerServiceImpl implements CustomerService {
 	public ResponseDto getAllCustomers() {
 		ResponseDto response = new ResponseDto();
 		try {
+			if(!validRequest(null, StatusResponse.GETALL_REQUEST)) {
+				response.setStatusCode(StatusResponse.BAD_REQUEST_STATUS_CODE);
+				response.setMessage(StatusResponse.BAD_REQUEST);
+			}
 		List<CustomerDetails> customers = customerRepository.findAll();
 		if (customers == null || customers.size() == 0) {
 			//
@@ -112,10 +116,16 @@ public class CustomerServiceImpl implements CustomerService {
 
 		for (CustomerDetailsDTO customer : allCustomers) {
 			List<CardDetailsDTO> cardsOfCustomer = new ArrayList<CardDetailsDTO>();
-			for (CardDetailsDTO card : allCards) {
-				if (card.getCustomerId().equalsIgnoreCase(customer.getCustomerId())) {
-					cardsOfCustomer.add(card);
-					// allCards.remove(card);
+			if(allCards.isEmpty() || allCards.size() == 0 || allCards == null) {
+				logger.info("No cards in db yet");
+			}
+			else {
+				logger.info(String.format("CardSize: %s : T", allCards.size()));
+				for (CardDetailsDTO card : allCards) {
+					if (card.getCustomerId().equalsIgnoreCase(customer.getCustomerId())) {
+						cardsOfCustomer.add(card);
+						// allCards.remove(card);
+					}
 				}
 			}
 			customer.setAllCards(cardsOfCustomer);
@@ -295,27 +305,31 @@ public class CustomerServiceImpl implements CustomerService {
 		ResponseDto response = new ResponseDto();
 		CustomerDetails customer = customerRepository.findById(customerId).orElse(null);
 		try {
-		// checks if id entered in the URI corresponds to a customer in the db or not
-		if (customer != null) {
-			List<CardDetails> customerCards = customer.getListCards();
-			for(CardDetails card : customerCards) {
-				//cardRepository.delete(card); //delete all cards of customer
-				card.setStatus(StatusResponse.DEACTIVE_STATUS);
-				cardRepository.save(card);
+			if (customer != null) {
+				if(customer.getStatus().equalsIgnoreCase(StatusResponse.DEACTIVE_STATUS)) {		
+					response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+					response.setMessage(StatusResponse.CUSTOMER_ALREADY_DEACTIVE);
+					return response;
+				}
+				List<CardDetails> customerCards = customer.getListCards();
+				for(CardDetails card : customerCards) {
+					//cardRepository.delete(card); //delete all cards of customer
+					card.setStatus(StatusResponse.DEACTIVE_STATUS);
+					cardRepository.save(card);
+				}
+				//customerRepository.deleteById(customerId);
+				customer.setStatus(StatusResponse.DEACTIVE_STATUS);
+				customerRepository.save(customer);
+				
+			} else { // invalid customer id
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+				return response;
 			}
-			//customerRepository.deleteById(customerId);
-			customer.setStatus(StatusResponse.DEACTIVE_STATUS);
-			customerRepository.save(customer);
-			
-		} else {
-			response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
-			response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+	
+			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+			response.setMessage(StatusResponse.CUSTOMER_DEACTIVATED);
 			return response;
-		}
-
-		response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
-		response.setMessage(StatusResponse.CUSTOMER_DEACTIVATED);
-		return response;
 		} catch(Exception e) {
 			logger.error(e.getMessage(),e);
 			response.setStatusCode(StatusResponse.SERVER_ERROR_STATUS_CODE);
@@ -528,12 +542,12 @@ public class CustomerServiceImpl implements CustomerService {
 		try {
 			// name can be null, contain spaces or numbers, or be valid
 			// NOTE: no use case of requestCase as of now
-			if(name.matches(RegularExpressions.MOBILE_NUMBER_FORMAT)) {
-				logger.info("matched in validate function");
+			if(name.matches(RegularExpressions.CUSTOMER_NAME_FORMAT)) {
+				logger.info("matched in validate function - name");
 				response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
 			}
 			else {
-				logger.info("did not match in validate function");
+				logger.info("did not match in validate function - name");
 				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
 				response.setMessage(StatusResponse.NAME_INVALID_FORMAT);
 			}

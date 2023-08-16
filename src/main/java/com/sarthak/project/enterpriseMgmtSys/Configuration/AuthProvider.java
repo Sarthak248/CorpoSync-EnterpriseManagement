@@ -44,7 +44,7 @@ public class AuthProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
-        logger.info("obtained username ", username);
+        logger.info("obtained username at auth provider ", username);
         User user = userRepository.findUserByUsername(username).orElse(null);
         
         

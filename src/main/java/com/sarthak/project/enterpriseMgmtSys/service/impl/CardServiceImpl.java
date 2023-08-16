@@ -227,7 +227,7 @@ public class CardServiceImpl implements CardService{
 				return response;
 			}
 			//activate - cardRepo carCount++
-			customer.setCardCount(customer.getCardCount()+1);
+//			customer.setCardCount(customer.getCardCount()+1);
 			customerRepository.save(customer);
 			card.setStatus(StatusResponse.ACTIVE_STATUS);
 			cardRepository.save(card);
@@ -257,7 +257,13 @@ public class CardServiceImpl implements CardService{
 //			CustomerDetails customer = customerRepository.findById(cardDetails.getCustomerId()).orElse(null);
 //			customer.setCardCount(customer.getCardCount()-1);
 //			customerRepository.save(customer);
-			CardDetailsDTO cardDto = new CardDetailsDTO();
+			CardDetailsDTO cardDto = mapper.map(cardDetails, CardDetailsDTO.class);
+			if(cardDto.getStatus().equalsIgnoreCase(StatusResponse.DEACTIVE_STATUS)) {
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.CARD_ALREADY_DEACTIVE);	
+				response.setResult(cardDto.getAliasName()); //returns name of card deleted
+				return response;
+			}
 			cardDto.setAliasName(cardDetails.getAliasName());
 			//cardRepository.deleteById(cardId);
 			cardDetails.setStatus(StatusResponse.DEACTIVE_STATUS);

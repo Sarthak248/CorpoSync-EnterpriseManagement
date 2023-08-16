@@ -27,12 +27,15 @@ public class User implements UserDetails {
    private int userId;
    
    @Column(name = "username", nullable = false)
-   private String username; 
+   private String username;
+   
+   @Column(name = "email", nullable = false)
+   private String email;
    
    @Column(name = "password", nullable = false)
    private String password; 
    
-   @Column(name = "account_non_locked", nullable = false)
+   @Column(name = "account_not_locked", nullable = false)
    private boolean accountNonLocked; 
    
    public User() { 
@@ -58,7 +61,13 @@ public class User implements UserDetails {
    } 
    public void setPassword(String password) { 
       this.password = password; 
+   }
+   public String getEmail() {    
+      return email; 
    } 
+   public void setEmail(String email) { 
+      this.email = email; 
+   }
    @Override 
    public String getUsername() { 
       return username; 

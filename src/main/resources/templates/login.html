@@ -9,6 +9,7 @@
    </head>
    <body>
    		<div class="container my-2">
+   			<h1>User Login</h1> 
 	   		<div th:if="${param.error}">
 			<div th:if="${session.error}">
 			    <div class="alert alert-danger" th:text="${session.error}"></div>
@@ -25,6 +26,14 @@
 	         <div>
 	            <input type="submit" value="Sign In" />
 	         </div>
+	      </form>
+	      <p></p>
+	      <form th:action="@{/forgot}" method="get">
+	         <div th:if="${param.error}">
+				<div th:if="${session.error}">
+				    <div><input type="submit" value="Forgot Password?" /></div>
+				</div>
+		      </div>
 	      </form>
 	      <p></p>
 	      <form th:action="@{/register}" method="get">

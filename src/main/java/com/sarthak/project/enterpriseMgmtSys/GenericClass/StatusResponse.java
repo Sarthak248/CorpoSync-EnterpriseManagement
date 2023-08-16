@@ -61,6 +61,8 @@ public final class StatusResponse {
 	
 	public static final String CUSTOMER_ALREADY_ACTIVE = "Customer is already active";
 	public static final String CARD_ALREADY_ACTIVE = "Card is already active";
+	public static final String CUSTOMER_ALREADY_DEACTIVE = "Customer is already deactive";
+	public static final String CARD_ALREADY_DEACTIVE = "Card is already deactive";
 	
 	public static final String CARD_ACTIVATED = "Card has been activated again";
 	public static final String CUSTOMER_ACTIVATED = "Customer has been activated again";
