@@ -13,14 +13,14 @@ import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
+import com.sarthak.project.enterpriseMgmtSys.GenericClass.DateAndTime;
+import com.sarthak.project.enterpriseMgmtSys.GenericClass.RegularExpressions;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
 import com.sarthak.project.enterpriseMgmtSys.entity.User;
 import com.sarthak.project.enterpriseMgmtSys.payload.UserDto;
 import com.sarthak.project.enterpriseMgmtSys.repository.UserRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.AuthenticationService;
-
-import ch.qos.logback.core.status.Status;
 
 import javax.servlet.http.HttpServletRequest; 
 import javax.servlet.http.HttpSession;
@@ -100,21 +100,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	@Override
     public ResponseDto addUser(String username, String password, String email) {
 		ResponseDto response = new ResponseDto();
-        // Check if the user already exists in the system
-        if (userRepository.findUserByUsername(username).isPresent()) {
+		if(invalidUsernameFormat(username)) {
+			logger.info(String.format("name is of invalid format %s",username));
+        	response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+        	response.setMessage(StatusResponse.NAME_INVALID_FORMAT);
+        	return response;
+		} else if (userRepository.findUserByUsername(username).isPresent()) {
         	logger.info("username already exists",username);
             //map to /register and 
         	response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+        	response.setMessage(StatusResponse.USERNAME_ALREADY_EXISTS);
         	return response;
         	//throw new IllegalArgumentException("User with username already exists: " + username);
             
-        }
-        if(userRepository.findUserByEmail(email).isPresent()) {
-        	logger.info("email already exists",email);
-            //map to /register and 
+        } else if(invalidEmailFormat(email)) {
+        	logger.info(String.format("email is of invalid format %s",email));
         	response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+        	response.setMessage(StatusResponse.EMAIL_INVALID_FORMAT);
+        	return response;
+        } else if(userRepository.findUserByEmail(email).isPresent()) {
+        	logger.info("email already exists",email);
+        	response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+        	response.setMessage(StatusResponse.EMAIL_ALREADY_EXISTS);
         	return response;
         }
+        
+        
 
         // Create the new user
         User user = new User();
@@ -122,6 +133,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setAccountNonLocked(true);
+        user.setCreatedOn(DateAndTime.generateDateAndTime());
         userDetailsManager.createUser(user);
         logger.info("manager created user");
         userRepository.save(user);
@@ -227,6 +239,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 					logger.info(String.format("user is not null, proceeding to encode %d", 200));
 				}
 				user.setPassword(passwordEncoder.encode(newPass));
+				user.setUpdatedOn(DateAndTime.generateDateAndTime());
 //				userDetailsManager.createUser(user);
 //		        logger.info("manager created user");
 		        userRepository.save(user);
@@ -256,6 +269,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		
 		encoded+=name+"*".repeat(charsRestricted)+domain;
 		return encoded;
+	}
+	
+	public boolean invalidEmailFormat(String email) {
+		if(email.matches(RegularExpressions.EMAIL_FORMAT)) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean invalidUsernameFormat(String username) {
+		if(username.matches(RegularExpressions.USER_NAME_FORMAT)) {
+			return true;
+		}
+		return false;
 	}
 
 } //end class

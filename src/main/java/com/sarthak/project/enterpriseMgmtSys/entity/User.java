@@ -11,11 +11,6 @@ import javax.persistence.Table;
 import org.springframework.security.core.GrantedAuthority; 
 import org.springframework.security.core.userdetails.UserDetails;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString; 
-
 @Entity 
 @Table(name = "users") 
 public class User implements UserDetails { 
@@ -35,8 +30,14 @@ public class User implements UserDetails {
    @Column(name = "password", nullable = false)
    private String password; 
    
-   @Column(name = "account_not_locked", nullable = false)
+   @Column(name = "account_non_locked", nullable = false)
    private boolean accountNonLocked; 
+   
+   @Column(name = "createdOn", nullable = false)
+   private String createdOn; 
+   
+   @Column(name = "updatedOn")
+   private String updatedOn; 
    
    public User() { 
    } 
@@ -95,5 +96,19 @@ public class User implements UserDetails {
    } 
    public boolean getAccountNonLocked() { 
       return accountNonLocked; 
+   }
+   
+   public void setCreatedOn(String createdOn) { 
+      this.createdOn = createdOn; 
+   } 
+   public String getCreatedOn() { 
+      return createdOn; 
+   }
+   
+   public void setUpdatedOn(String updatedOn) { 
+      this.updatedOn = updatedOn; 
+   } 
+   public String getUpdatedOn() { 
+      return updatedOn; 
    }
 }

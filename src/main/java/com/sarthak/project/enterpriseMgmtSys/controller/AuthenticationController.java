@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
 import com.sarthak.project.enterpriseMgmtSys.payload.UserDto;
-import com.sarthak.project.enterpriseMgmtSys.repository.UserRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.AuthenticationService;
 
 @Controller 
@@ -33,16 +32,20 @@ public class AuthenticationController {
    @Autowired private AuthenticationService onboardService;
    
    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
-   //Total of 8 methods: 4 in Thymeleaf and Postman each.
-   //2 of the 4 are GetMapping that redirect to the other 2 Postmapping
    
    //THYMELEAF   
    @GetMapping("/")
    public String redirect(HttpServletRequest request, HttpSession session,
 				Model model) {
        Principal principal = request.getUserPrincipal();
-       if(principal!=null)
+       if(principal!=null) {
+    	   logger.info("In the principal not null stmt");
+    	   UserDto user = (UserDto) session.getAttribute("verifiedUser");
+    	   logger.info(String.format("verified user from session : %s", user.getUsername()));
+    	   model.addAttribute("username", user.getUsername());
+		   model.addAttribute("justLoggedIn", true);
     	   return "index";
+       }
 	   return "forward:/login";
 	    
    } 
@@ -56,7 +59,6 @@ public class AuthenticationController {
 	        // Return the Thymeleaf template for the browser request
 	    	logger.info("session setting attribute");
 	    	session.setAttribute("error", onboardService.getErrorMessage(request, "SPRING_SECURITY_LAST_EXCEPTION"));
-//	    	model.addAttribute("justLoggedIn", true);
 	        return "login"; 
 	    } else {
 	    	logger.info("forwarding to @Post api/login from @Get /login");
@@ -72,20 +74,15 @@ public class AuthenticationController {
 		   logger.info("reached the if to check string");
 		   model.addAttribute("justLoggedIn", true);
 		   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
 	        if (authentication != null && authentication.isAuthenticated()) {
 	            // Get the username from the authentication object
 	            String username = authentication.getName();
-
 	            // Set the username as a session attribute
 	            session.setAttribute("verifiedUser", username);
-
 	            logger.info(String.format("authcontr:post:login:verified user name : %s", username));
 	        }
-
 	        return "index";
 	    }
-
 	    return "index";
 	}
    
@@ -117,10 +114,25 @@ public class AuthenticationController {
 	   logger.info("at /register post, passed map of string, string");
        ResponseDto response = onboardService.addUser(body.get("username"), body.get("password"), body.get("email"));
        if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
-    	   //user already exists
-    	   logger.info("Controller now knows that user already exists");
-    	   model.addAttribute("alreadyRegistered", true);
-    	   return "register";
+    	   if (response.getMessage().equalsIgnoreCase(StatusResponse.USERNAME_ALREADY_EXISTS)) {
+    		   //user already exists
+        	   logger.info("Controller now knows that user already exists");
+//        	   model.addAttribute("nameExists", true);
+//        	   return "register";
+    	   } else if (response.getMessage().equalsIgnoreCase(StatusResponse.EMAIL_INVALID_FORMAT)) {
+    		   logger.info("Controller now knows that email is of invalid format");
+        	   model.addAttribute("invalidEmailFormat", true);
+        	   return "register";    		   
+    	   } else if (response.getMessage().equalsIgnoreCase(StatusResponse.EMAIL_ALREADY_EXISTS)) {
+    		   logger.info("Controller now knows that email already exists");
+        	   model.addAttribute("alreadyRegistered", true);
+        	   return "register";    		   
+    	   } else if(response.getMessage().equalsIgnoreCase(StatusResponse.NAME_INVALID_FORMAT)) {
+    		   logger.info("Controller now knows that user is of invalid format");
+        	   model.addAttribute("invalidNameFormat", true);
+        	   return "register";    		   
+    	   }
+    	   
        }
        UserDto user = (UserDto) response.getResult();
        logger.info(user.getUsername());
@@ -220,10 +232,7 @@ public class AuthenticationController {
        session.setAttribute("verifiedUser", updatedUser);
        return "index";
    }
-   
-   
-   
-   
+      
    //SUCCESS REDIRECT
    @GetMapping("/api/login/redirect")
    public String loginRedirect(HttpServletRequest request, HttpSession session) {

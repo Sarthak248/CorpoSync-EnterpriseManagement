@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sarthak.project.enterpriseMgmtSys.GenericClass.DateAndTime;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.IdGeneratorCustomer;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.RegularExpressions;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
@@ -27,7 +28,6 @@ import com.sarthak.project.enterpriseMgmtSys.repository.CardRepository;
 import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.CustomerService;
 import java.lang.reflect.Field;
-
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -67,6 +67,7 @@ public class CustomerServiceImpl implements CustomerService {
 					customer.setCustomerMobile(customerDetailsDTO.getCustomerMobile());
 					customer.setEnterpriseId(customerDetailsDTO.getEnterpriseId());
 					customer.setStatus(StatusResponse.ACTIVE_STATUS);
+					customer.setCreatedOn(DateAndTime.generateDateAndTime());
 					
 					customerRepository.save(customer);
 					
@@ -220,6 +221,7 @@ public class CustomerServiceImpl implements CustomerService {
 				customerDtoFinal.setCustomerMobile(existingCustomer.getCustomerMobile());
 			}
 		}
+		existingCustomer.setUpdatedOn(DateAndTime.generateDateAndTime());
 		customerRepository.save(existingCustomer);
 
 		customerDtoFinal.setCustomerName(existingCustomer.getCustomerName());
@@ -272,6 +274,7 @@ public class CustomerServiceImpl implements CustomerService {
 			}
 			//activate
 			customer.setStatus(StatusResponse.ACTIVE_STATUS);
+			customer.setUpdatedOn(DateAndTime.generateDateAndTime());
 			customerRepository.save(customer);
 			
 			List<CardDetailsDTO> allCards = cardRepository.findAll().stream()
@@ -315,10 +318,12 @@ public class CustomerServiceImpl implements CustomerService {
 				for(CardDetails card : customerCards) {
 					//cardRepository.delete(card); //delete all cards of customer
 					card.setStatus(StatusResponse.DEACTIVE_STATUS);
+					card.setUpdatedOn(DateAndTime.generateDateAndTime());
 					cardRepository.save(card);
 				}
 				//customerRepository.deleteById(customerId);
 				customer.setStatus(StatusResponse.DEACTIVE_STATUS);
+				customer.setUpdatedOn(DateAndTime.generateDateAndTime());
 				customerRepository.save(customer);
 				
 			} else { // invalid customer id

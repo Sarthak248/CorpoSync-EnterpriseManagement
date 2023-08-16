@@ -17,8 +17,15 @@
             <hr> 
 			<p></p>
 			<div th:if="${alreadyRegistered}">
-				<p>OOPS! User Already exists</p>
+				<p>OOPS! User Already exists with this Email ID</p>
 			</div>
+			<div th:if="${invalidNameFormat}">
+				<p>OOPS! The name entered is of invalid format</p>
+			</div>
+			<div th:if="${invalidEmailFormat}">
+				<p>OOPS! The email entered is of invalid format</p>
+			</div>
+			
 			
 			<label for="email"><b>Email</b></label> 
             <input type="text" placeholder="Enter Email" name="email" id="email" required> 

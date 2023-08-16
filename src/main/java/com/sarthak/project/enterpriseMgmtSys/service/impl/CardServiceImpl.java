@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sarthak.project.enterpriseMgmtSys.GenericClass.DateAndTime;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.IdGeneratorCard;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.RegularExpressions;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
@@ -56,15 +57,16 @@ public class CardServiceImpl implements CardService{
 		response = validCard(cardDetailsDTO.getAliasName(), StatusResponse.CREATE_REQUEST);
 		if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
 			IdGeneratorCard idGen = new IdGeneratorCard(cardRepository);
-		
 			CardDetails card = new CardDetails();
 			card.setCardId(idGen.generateCardId());
 			card.setAliasName(cardDetailsDTO.getAliasName());
 			card.setCustomerId(cardDetailsDTO.getCustomerId());
 			card.setStatus(StatusResponse.ACTIVE_STATUS);
+			card.setCreatedOn(DateAndTime.generateDateAndTime());
 			
 			cardRepository.save(card);
 			customerDetails.setCardCount(customerDetails.getCardCount()+1);
+			customerDetails.setUpdatedOn(DateAndTime.generateDateAndTime());
 			customerRepository.save(customerDetails);
 			response.setStatusCode(StatusResponse.CREATED_STATUS_CODE);
 			response.setMessage(StatusResponse.CARD_CREATED);
@@ -155,9 +157,11 @@ public class CardServiceImpl implements CardService{
 				//response = validCard(cardDetailsDTO.getAliasName(), StatusResponse.UPDATE_REQUEST);
 				//if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {}
 				oldCard.setAliasName(cardDetailsDTO.getAliasName());
+				oldCard.setUpdatedOn(DateAndTime.generateDateAndTime());
 				newCardDto.setAliasName(oldCard.getAliasName());
 				newCardDto.setCardId(oldCard.getCardId());
 				newCardDto.setCustomerId(oldCard.getCustomerId());
+				newCardDto.setStatus(oldCard.getStatus());
 				
 				cardRepository.save(oldCard);
 				
@@ -171,10 +175,13 @@ public class CardServiceImpl implements CardService{
 					CustomerDetails prevCustomer = customerRepository.findById(oldCard.getCustomerId()).orElse(null);
 					CustomerDetails newCustomer = customerRepository.findById(cardDetailsDTO.getCustomerId()).orElse(null);
 					newCustomer.setCardCount(newCustomer.getCardCount()+1);
+					newCustomer.setUpdatedOn(DateAndTime.generateDateAndTime());
 					prevCustomer.setCardCount(prevCustomer.getCardCount()-1);
+					prevCustomer.setUpdatedOn(DateAndTime.generateDateAndTime());
 					customerRepository.save(prevCustomer);	
 					customerRepository.save(newCustomer);
 					oldCard.setCustomerId(newCustomer.getCustomerId());
+					oldCard.setUpdatedOn(DateAndTime.generateDateAndTime());
 					cardRepository.save(oldCard);					
 					
 					newCardDto.setCardId(oldCard.getCardId());
@@ -226,10 +233,8 @@ public class CardServiceImpl implements CardService{
 				response.setMessage(StatusResponse.BLOCKED_CUSTOMER);
 				return response;
 			}
-			//activate - cardRepo carCount++
-//			customer.setCardCount(customer.getCardCount()+1);
-			customerRepository.save(customer);
 			card.setStatus(StatusResponse.ACTIVE_STATUS);
+			card.setUpdatedOn(DateAndTime.generateDateAndTime());
 			cardRepository.save(card);
 			cardResponse.setStatus(card.getStatus());
 				
@@ -267,6 +272,7 @@ public class CardServiceImpl implements CardService{
 			cardDto.setAliasName(cardDetails.getAliasName());
 			//cardRepository.deleteById(cardId);
 			cardDetails.setStatus(StatusResponse.DEACTIVE_STATUS);
+			cardDetails.setUpdatedOn(DateAndTime.generateDateAndTime());
 			cardRepository.save(cardDetails);
 			response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
 			response.setMessage(StatusResponse.CARD_DEACTIVATED);	

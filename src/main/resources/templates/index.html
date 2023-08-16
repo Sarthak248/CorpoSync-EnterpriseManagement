@@ -10,7 +10,7 @@
    <body>
    		<div class="container my-2">
    			<div th:if="${justLoggedIn}">
-	        	<h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]!</h1>
+	        	<h1 th:inline="text">Hello [[${username}]]!</h1>
 	      	</div> 
 	      	<div th:if="${justRegistered}">
 	        	<h1 th:inline="text">Hello [[${username}]]!</h1>

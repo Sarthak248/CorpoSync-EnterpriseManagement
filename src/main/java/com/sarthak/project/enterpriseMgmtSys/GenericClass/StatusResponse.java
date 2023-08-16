@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public final class StatusResponse {
+	//REQUEST IDS
 	public static final int CREATE_REQUEST = 1;
 	public static final int GETALL_REQUEST = 2;
 	public static final int GET_REQUEST = 3;
@@ -23,12 +24,14 @@ public final class StatusResponse {
 	public static final String ACTIVE_STATUS = "ACTIVE";
 	public static final String DEACTIVE_STATUS = "DEACTIVE";
 
+	//HTTP STATUS CODES
 	public static final String CREATED_STATUS_CODE = "201";
 	public static final String SUCCESS_STATUS_CODE = "200";
 	public static final String FAILURE_STATUS_CODE = "404";
 	public static final String BAD_REQUEST_STATUS_CODE = "400";
 	public static final String SERVER_ERROR_STATUS_CODE = "500";
 
+	//STATUS MESSAGES
 	public static final String BAD_REQUEST = "Bad Request: Invalid or Incomplete request";
 	
 	public static final String CUSTOMER_CREATED = "Customer has been created successfully";
@@ -54,7 +57,10 @@ public final class StatusResponse {
 	
 	public static final String MOBILE_INVALID_FORMAT = "Mobile number is of invalid format";
 	public static final String NAME_INVALID_FORMAT = "Name is of invalid format";
+	public static final String EMAIL_INVALID_FORMAT = "Email is of invalid format";
 	
+	public static final String USERNAME_ALREADY_EXISTS = "User with this name already exists";
+	public static final String EMAIL_ALREADY_EXISTS = "User with this email already exists";
 	public static final String MOBILE_ALREADY_EXISTS = "Mobile number already exists"; //no duplicates
 	
 	public static final String CUSTOMER_HAS_NO_CARDS = "Customer does not have any cards";

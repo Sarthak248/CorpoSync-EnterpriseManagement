@@ -41,6 +41,12 @@ public class CustomerDetails {
 	@Column(name = "status", nullable = false)
 	private String status;
 
+	@Column(name = "createdOn", nullable = false)
+	private String createdOn;
+	
+	@Column(name = "updatedOn")
+	private String updatedOn;
+	
 	@ToString.Exclude
 	@JsonManagedReference
 	@OneToMany(mappedBy = "customerId", orphanRemoval = false)

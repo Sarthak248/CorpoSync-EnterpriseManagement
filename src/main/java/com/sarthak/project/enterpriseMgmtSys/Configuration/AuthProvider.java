@@ -20,16 +20,12 @@ import com.sarthak.project.enterpriseMgmtSys.entity.Attempts;
 import com.sarthak.project.enterpriseMgmtSys.entity.User; 
 import com.sarthak.project.enterpriseMgmtSys.repository.AttemptsRepository;
 import com.sarthak.project.enterpriseMgmtSys.repository.UserRepository;
-import com.sarthak.project.enterpriseMgmtSys.service.SecurityUserDetailsService;
 
 @Component
 public class AuthProvider implements AuthenticationProvider {
 	private static final Logger logger = LoggerFactory.getLogger(AuthProvider.class);
 
     private static final int ATTEMPTS_LIMIT = 3;
-
-    @Autowired
-    private SecurityUserDetailsService userDetailsService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
