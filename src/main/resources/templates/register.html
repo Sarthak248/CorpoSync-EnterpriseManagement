@@ -16,6 +16,9 @@
             <p>Please fill in this form to create an account.</p> 
             <hr> 
 			<p></p>
+			<div th:if="${nameExists}">
+				<p>OOPS! User Already exists with this Name</p>
+			</div>
 			<div th:if="${alreadyRegistered}">
 				<p>OOPS! User Already exists with this Email ID</p>
 			</div>

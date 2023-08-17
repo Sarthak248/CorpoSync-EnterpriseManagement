@@ -164,6 +164,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	@Override
     public ResponseDto addUser(String username, String password, String email) {
 		ResponseDto response = new ResponseDto();
+		logger.info("In register, addUser, authServImpl");
 		if(invalidUsernameFormat(username)) {
 			logger.info(String.format("name is of invalid format %s",username));
         	response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
@@ -243,7 +244,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		ResponseDto response = new ResponseDto();
 		User user = userRepository.findUserByUsername(userName).orElse(null);
 		try {
-			if(user.equals(null) || user==null) {
+			if(user==null) {
 				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
 				logger.info("In forgot, no such user exists in db");
 				return response;
@@ -344,16 +345,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	
 	public boolean invalidEmailFormat(String email) {
 		if(email.matches(RegularExpressions.EMAIL_FORMAT)) {
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	public boolean invalidUsernameFormat(String username) {
 		if(username.matches(RegularExpressions.USER_NAME_FORMAT)) {
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 } //end class

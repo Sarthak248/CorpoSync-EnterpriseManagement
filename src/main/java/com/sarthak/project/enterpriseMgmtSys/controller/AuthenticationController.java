@@ -118,8 +118,8 @@ public class AuthenticationController {
     	   if (response.getMessage().equalsIgnoreCase(StatusResponse.USERNAME_ALREADY_EXISTS)) {
     		   //user already exists
         	   logger.info("Controller now knows that user already exists");
-//        	   model.addAttribute("nameExists", true);
-//        	   return "register";
+        	   model.addAttribute("nameExists", true);
+        	   return "register";
     	   } else if (response.getMessage().equalsIgnoreCase(StatusResponse.EMAIL_INVALID_FORMAT)) {
     		   logger.info("Controller now knows that email is of invalid format");
         	   model.addAttribute("invalidEmailFormat", true);
