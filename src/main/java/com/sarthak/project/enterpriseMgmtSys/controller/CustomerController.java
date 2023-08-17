@@ -114,7 +114,7 @@ public class CustomerController {
 	}
 	
 	@GetMapping("/cardsOfCustomer")
-	public ModelAndView viewCustomerCards(@RequestParam("customerId") String customerId) {	    
+	public ModelAndView viewCustomerCards(@RequestParam("customerId") String customerId, HttpSession session) {	    
 	    logger.info("at @Get /cardsOfCustomer");
 	        // Return the Thymeleaf template for the browser request
         return new ModelAndView("forward:/customers/"+customerId+"/getall/page/1/cardId/asc");
@@ -126,7 +126,7 @@ public class CustomerController {
 	public ModelAndView findPaginated(@PathVariable(value = "pageNo") int pageNo,
 									@PathVariable(value = "field") String sortField,
 									@PathVariable(value = "dir") String direction,
-								Model model) {		
+								Model model, HttpSession session) {		
 		ModelAndView modelAndView = new ModelAndView("getallPage");
 		modelAndView.addObject("totalPages", customerService.getPages(StatusResponse.CUSTOMER_REQUEST,null));
 		modelAndView.addObject("currentPage", pageNo);
@@ -139,7 +139,7 @@ public class CustomerController {
 		modelAndView.addObject("sortField", sortField);
 		modelAndView.addObject("direction", direction);
 		modelAndView.addObject("reverseSortDirection", (direction.equalsIgnoreCase("asc"))?"desc":"asc");
-		
+		session.setAttribute("fromCustomer", false);
 	    return modelAndView;
 	}
 	

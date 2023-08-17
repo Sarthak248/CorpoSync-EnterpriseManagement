@@ -92,8 +92,13 @@
 					<td>
 						<form th:action="@{/cardsOfCustomer}" method="get">
 			                <input type="hidden" name="customerId" th:value="${customer.customerId}" />
-			                <button type="submit">View All Cards</button>
-			            </form>	
+			                <span th:if="${customer.cardCount > 0}">
+			                    <button type="submit">View All Cards</button>
+			                </span>
+			                <span th:unless="${customer.cardCount > 0}">
+			                    <span>View All Cards</span>
+			                </span>
+			            </form>
 					</td>				
 				</tr>
 				<th:block th:if="${currentPage == totalPages and emptyCells != 0}">

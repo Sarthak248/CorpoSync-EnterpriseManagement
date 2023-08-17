@@ -290,15 +290,13 @@ public class AuthenticationController {
    public String customerIdVerification(@RequestParam("mobile") String mobile,
 		   HttpServletRequest request, HttpSession session,
 				Model model) {
-	   //********************************************
-	   CustomerLoginDto customerLoginDto = (CustomerLoginDto) session.getAttribute("sessionCustomer");
 	   ResponseDto response = authService.customerIdVerification((String) session.getAttribute("sessionCustomerId"), mobile);
 	   if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
 		   model.addAttribute("noMatch", true);
 		   return "member";
 	   } else if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
 		   //success path
-		   model.addAttribute("customerId", customerLoginDto.getCustomerId());
+		   model.addAttribute("customerId", (String) session.getAttribute("sessionCustomerId"));
 		   session.setAttribute("fromCustomer", true);
 		   return "memberView";
 	   }
