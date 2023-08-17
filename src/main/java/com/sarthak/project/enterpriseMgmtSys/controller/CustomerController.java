@@ -148,7 +148,7 @@ public class CustomerController {
 									@PathVariable(value = "pageNo") int pageNo,
 									@PathVariable(value = "sortField") String sortField,
 									@PathVariable(value = "direction") String direction,
-								Model model) {
+								Model model, HttpSession session) {
 		ModelAndView modelAndView = new ModelAndView("cardsOfCustomer");
 		modelAndView.addObject("totalPages", customerService.getPages(StatusResponse.CARD_REQUEST,customerId));
 		modelAndView.addObject("currentPage", pageNo);
@@ -161,6 +161,13 @@ public class CustomerController {
 		modelAndView.addObject("sortField", sortField);
 		modelAndView.addObject("direction", direction);
 		modelAndView.addObject("reverseSortDirection", (direction.equalsIgnoreCase("asc"))?"desc":"asc");
+		if((boolean)session.getAttribute("fromCustomer")==true) {
+			logger.info("fromCustomer Got from session, now setting in model");
+			modelAndView.addObject("fromCustomer", true);
+		} else {
+			logger.info("fromUser Got from session, now setting in model");
+			modelAndView.addObject("fromUser", true);
+		}
 		
 		return modelAndView;
 	}

@@ -24,12 +24,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
+import com.sarthak.project.enterpriseMgmtSys.payload.CustomerLoginDto;
 import com.sarthak.project.enterpriseMgmtSys.payload.UserDto;
 import com.sarthak.project.enterpriseMgmtSys.service.AuthenticationService;
 
 @Controller 
 public class AuthenticationController {
-   @Autowired private AuthenticationService onboardService;
+   @Autowired private AuthenticationService authService;
    
    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
    
@@ -48,8 +49,8 @@ public class AuthenticationController {
        }
 	   return "forward:/login";
 	    
-   } 
-   
+   }
+
    @GetMapping("/login")
    public String showLoginPage(HttpServletRequest request, HttpSession session,
 		   						Model model) {
@@ -58,7 +59,7 @@ public class AuthenticationController {
 	    if (acceptHeader != null && acceptHeader.contains("text/html")) {
 	        // Return the Thymeleaf template for the browser request
 	    	logger.info("session setting attribute");
-	    	session.setAttribute("error", onboardService.getErrorMessage(request, "SPRING_SECURITY_LAST_EXCEPTION"));
+	    	session.setAttribute("error", authService.getErrorMessage(request, "SPRING_SECURITY_LAST_EXCEPTION"));
 	        return "login"; 
 	    } else {
 	    	logger.info("forwarding to @Post api/login from @Get /login");
@@ -70,7 +71,7 @@ public class AuthenticationController {
    public String login(HttpServletRequest request, HttpSession session,
 		   				Model model) { 
 	   logger.info("At /login post, passed request and session");
-	   if(onboardService.login(request, session, model).equalsIgnoreCase("index")) {
+	   if(authService.login(request, session, model).equalsIgnoreCase("index")) {
 		   logger.info("reached the if to check string");
 		   model.addAttribute("justLoggedIn", true);
 		   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -112,7 +113,7 @@ public class AuthenticationController {
 		   				Model model,
 		   				HttpSession session) {
 	   logger.info("at /register post, passed map of string, string");
-       ResponseDto response = onboardService.addUser(body.get("username"), body.get("password"), body.get("email"));
+       ResponseDto response = authService.addUser(body.get("username"), body.get("password"), body.get("email"));
        if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
     	   if (response.getMessage().equalsIgnoreCase(StatusResponse.USERNAME_ALREADY_EXISTS)) {
     		   //user already exists
@@ -162,7 +163,7 @@ public class AuthenticationController {
    @PostMapping("/forgot") 
    public String forgotPassword(@RequestParam("username") String username, Model model, HttpSession session) { 
 	   logger.info("at /forgot post, passed map of string, string");
-       ResponseDto response = onboardService.forgotPass(username);
+       ResponseDto response = authService.forgotPass(username);
        if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
     	   //user doesn't exist
     	   logger.info("Controller now knows that user doesn exist");
@@ -190,7 +191,7 @@ public class AuthenticationController {
    public String verifyEmail(@RequestParam("cem") String email, HttpSession session, Model model) { 
 	   logger.info("at /forgot post, passed map of string, string");
 	   UserDto user = (UserDto) session.getAttribute("verifiedUser");
-       ResponseDto response = onboardService.verifyEmail(user, email);
+       ResponseDto response = authService.verifyEmail(user, email);
        if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
     	   //emails dont match
     	   logger.info("Controller now knows that user doesn exist");
@@ -221,7 +222,7 @@ public class AuthenticationController {
 	   
 	   UserDto user = (UserDto) session.getAttribute("verifiedUser");
 	   logger.info(String.format("authController:post:reset:verifiedUser: name : %s", user.getUsername()));
-       ResponseDto response = onboardService.resetPass(user, newPassword, confirmPassword);
+       ResponseDto response = authService.resetPass(user, newPassword, confirmPassword);
        if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
     	   //passwords dont match
     	   logger.info("pass dont match (controller)");
@@ -232,6 +233,89 @@ public class AuthenticationController {
        session.setAttribute("verifiedUser", updatedUser);
        return "index";
    }
+   
+   @GetMapping("/member")
+   public String showMemberPage(HttpServletRequest request, HttpSession session,
+		   						Model model) {
+	   logger.info("at @Get /member");
+	   String acceptHeader = request.getHeader("Accept");
+	    if (acceptHeader != null && acceptHeader.contains("text/html")) {
+	        // Return the Thymeleaf template for the browser request
+	    	logger.info("session setting attribute");
+	        return "member"; 
+	    } else {
+	    	logger.info("forwarding to @Post api/login from @Get /login");
+	        return "member";
+	    }
+   } 
+   
+   @PostMapping("/member") 
+   public String memberLogin(@RequestParam("customer") String customer,
+		   HttpServletRequest request, HttpSession session,
+		   				Model model) {
+	   logger.info("At /member post, passed request and session");
+	   ResponseDto response = authService.memberLogin(customer);
+	   if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
+		   logger.info("Failed with authService, now in controller");
+		   //either invalid customer format or non existing customer
+		   if(response.getMessage().equalsIgnoreCase(StatusResponse.CUSTOMTER_ID_INVALID_FORMAT)) {
+			   model.addAttribute("invalidFormat", true);
+			   return "member";
+		   } else if(response.getMessage().equalsIgnoreCase(StatusResponse.CUSTOMER_DOES_NOT_EXIST)) {
+			   model.addAttribute("noCustomer", true);
+			   return "member";
+		   }
+		   
+		   
+	   } else if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SERVER_ERROR)) {
+		   logger.info("Server error with authService, now in controller");
+		   return "error";		   
+	   } else {
+		   //successful -> can pass to stage 2
+		   CustomerLoginDto customerLoginDto = (CustomerLoginDto) response.getResult(); 
+		   session.setAttribute("sessionCustomer", customerLoginDto);
+		   session.setAttribute("sessionCustomerId", customerLoginDto.getCustomerId());
+		   model.addAttribute("proceedToVerify", true);
+		   model.addAttribute("encodedMobile", customerLoginDto.getEncodedMobile());
+
+		   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	       UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials(), Arrays.asList(new SimpleGrantedAuthority("MEMBER_LOGIN")));
+	       SecurityContextHolder.getContext().setAuthentication(newAuth);
+		   return "member";
+	   }
+	   return "error";
+   }
+   
+   @PostMapping("/mobileverify")
+   public String customerIdVerification(@RequestParam("mobile") String mobile,
+		   HttpServletRequest request, HttpSession session,
+				Model model) {
+	   //********************************************
+	   CustomerLoginDto customerLoginDto = (CustomerLoginDto) session.getAttribute("sessionCustomer");
+	   ResponseDto response = authService.customerIdVerification((String) session.getAttribute("sessionCustomerId"), mobile);
+	   if(response.getStatusCode().equalsIgnoreCase(StatusResponse.FAILURE_STATUS_CODE)) {
+		   model.addAttribute("noMatch", true);
+		   return "member";
+	   } else if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
+		   //success path
+		   model.addAttribute("customerId", customerLoginDto.getCustomerId());
+		   session.setAttribute("fromCustomer", true);
+		   return "memberView";
+	   }
+	   else {
+		   return "error";
+	   }
+   }
+   
+   @GetMapping("/redirectToMemberView")
+   public String showMemberViewPage(HttpSession session,
+			Model model) {
+	   model.addAttribute("customerId", (String)session.getAttribute("sessionCustomerId"));
+	   return "memberView";
+   }
+   
+   
+   
       
    //SUCCESS REDIRECT
    @GetMapping("/api/login/redirect")
@@ -263,7 +347,7 @@ public class AuthenticationController {
    public ResponseEntity<?> loginApi(HttpServletRequest request, HttpSession session) {
        // response dto contatins status, message and object as user details
 	   logger.info("Succesfully redirected");
-	   ResponseDto response = onboardService.loginApi(request, session);
+	   ResponseDto response = authService.loginApi(request, session);
        return new ResponseEntity<ResponseDto>(response, HttpStatus.OK);
    }
    

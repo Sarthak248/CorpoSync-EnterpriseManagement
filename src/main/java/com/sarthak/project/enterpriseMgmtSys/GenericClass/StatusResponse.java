@@ -58,6 +58,7 @@ public final class StatusResponse {
 	public static final String MOBILE_INVALID_FORMAT = "Mobile number is of invalid format";
 	public static final String NAME_INVALID_FORMAT = "Name is of invalid format";
 	public static final String EMAIL_INVALID_FORMAT = "Email is of invalid format";
+	public static final String CUSTOMTER_ID_INVALID_FORMAT = "Customer Id is of invalid format";
 	
 	public static final String USERNAME_ALREADY_EXISTS = "User with this name already exists";
 	public static final String EMAIL_ALREADY_EXISTS = "User with this email already exists";

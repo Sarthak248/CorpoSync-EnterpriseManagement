@@ -1,5 +1,6 @@
 package com.sarthak.project.enterpriseMgmtSys.service.impl;
 
+import org.apache.catalina.connector.Response;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,11 @@ import com.sarthak.project.enterpriseMgmtSys.GenericClass.DateAndTime;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.RegularExpressions;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
+import com.sarthak.project.enterpriseMgmtSys.entity.CustomerDetails;
 import com.sarthak.project.enterpriseMgmtSys.entity.User;
+import com.sarthak.project.enterpriseMgmtSys.payload.CustomerLoginDto;
 import com.sarthak.project.enterpriseMgmtSys.payload.UserDto;
+import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
 import com.sarthak.project.enterpriseMgmtSys.repository.UserRepository;
 import com.sarthak.project.enterpriseMgmtSys.service.AuthenticationService;
 
@@ -39,7 +43,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	
     @Autowired
 	public ModelMapper mapper;
-	
+
+    @Autowired
+    public CustomerRepository customerRepository;
     //THYMELEAF
     
     
@@ -97,6 +103,64 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	      return error;
 	   }
 
+	public ResponseDto memberLogin(String customerId) {
+		ResponseDto response = new ResponseDto();
+		try {
+			// parameter <customer> can be either customerId or customer Name
+			if(customerId.matches(RegularExpressions.CUSTOMER_ID_FORMAT)) {
+				CustomerDetails customerDetails = customerRepository.findById(customerId).orElse(null);
+				if(customerDetails==null) {
+					logger.info("customer did not enter an existing customer id");
+					response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+					response.setMessage(StatusResponse.CUSTOMER_DOES_NOT_EXIST);
+					return response;
+				}
+				//success path
+				CustomerLoginDto customerLoginDto = mapper.map(customerDetails, CustomerLoginDto.class);
+				response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+				customerLoginDto.setEncodedMobile(encodeMobile(customerDetails.getCustomerMobile()));
+				response.setResult(customerLoginDto);
+				return response;
+				
+			} else {
+				logger.info("customer did not enter valid customer id format");
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				response.setMessage(StatusResponse.CUSTOMTER_ID_INVALID_FORMAT);
+				return response;
+			}
+			
+		} catch (Exception e) {
+			logger.info("caught an exception at memberLogin");
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR);
+			return response;
+		}
+	}
+	
+	@Override
+	public ResponseDto customerIdVerification(String customerId, String mobile) {
+		ResponseDto response = new ResponseDto();
+		try {
+			CustomerDetails customerDetails = customerRepository.findById(customerId).orElse(null);
+			if(mobile.equalsIgnoreCase(customerDetails.getCustomerMobile())) {
+				logger.info(String.format("Mobile matched as : %s", mobile));
+				response.setStatusCode(StatusResponse.SUCCESS_STATUS_CODE);
+				return response;
+			} else {
+				logger.info(String.format("Mobile did not match : %s", mobile));
+				logger.info(String.format("and in repo : %s", customerDetails.getCustomerMobile()));
+				response.setStatusCode(StatusResponse.FAILURE_STATUS_CODE);
+				return response;
+			}
+		} catch (Exception e) {
+			logger.info("caught an exception at cusIdVer");
+			logger.error(e.getMessage(),e);
+			response.setStatusCode(StatusResponse.SERVER_ERROR);
+			return response;
+		}
+	}
+	
+	
 	@Override
     public ResponseDto addUser(String username, String password, String email) {
 		ResponseDto response = new ResponseDto();
@@ -268,6 +332,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		int charsRestricted = email.length()-4-parts[1].length();
 		
 		encoded+=name+"*".repeat(charsRestricted)+domain;
+		return encoded;
+	}
+	
+	public static String encodeMobile(String mobile) { //method assumes that email has @ and .com (proper email regex), atleast 4 letters before @
+		//1234567890 --> ******7890
+		String lastFourDigits = mobile.substring(6);
+		String encoded = "*".repeat(6)+lastFourDigits;
 		return encoded;
 	}
 	

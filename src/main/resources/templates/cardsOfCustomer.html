@@ -92,14 +92,24 @@
 			</div>
 		</div>
         
-        
-        <form th:action="@{/customers/getall}" method="get">
-    	<input name="index" type="submit" value="Back to Customers"/> 
-	    </form>
-	    <p></p>
-		<form th:action="@{/logout}" method="post"> 
-	        <input name="logout" type="submit" value="Sign Out"/> 
-	    </form>
+        <div th:if="${fromUser}">
+	        <form th:action="@{/customers/getall}" method="get">
+	    		<input name="index" type="submit" value="Back to Customers"/> 
+		    </form>
+		    <p></p>
+			<form th:action="@{/logout}" method="post"> 
+		        <input name="logout" type="submit" value="Sign Out"/> 
+		    </form>
+		</div>
+		<div th:if="${fromCustomer}">
+	        <form th:action="@{/redirectToMemberView}" method="get">
+	    		<input name="index" type="submit" value="Back to Home Page"/> 
+		    </form>
+		    <p></p>
+			<form th:action="@{/logout}" method="post"> 
+		        <input name="logout" type="submit" value="Sign Out"/> 
+		    </form>
+		</div>
     </div>
     
 </body>

@@ -13,6 +13,10 @@ public interface AuthenticationService {
 	public String login(HttpServletRequest request, HttpSession session, Model model);
 	String getErrorMessage(HttpServletRequest request, String key);
 	
+	public ResponseDto memberLogin(String customerId);
+	public ResponseDto customerIdVerification(String customerId, String mobile);
+	
+	
 	//Register with Thymeleaf
 	ResponseDto addUser(String username, String password, String email);
 	

@@ -1,0 +1,33 @@
+<!DOCTYPE html> 
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3"> 
+   <head> 
+      <title>Enterprise Management System - Member</title> 
+      <link rel="stylesheet" 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" 
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" 
+        crossorigin="anonymous">
+   </head>
+   <body>
+   		<div class="container my-2">
+		<h1 th:text="'Hello - ' + ${customerId}"></h1>
+	      <p></p>
+	      <form th:action="@{/cardsOfCustomer}" method="get">
+              <input type="hidden" name="customerId" th:value="${customerId}" />
+              <button type="submit">View My Cards</button>
+          </form>	
+	      <p></p>
+	      <form th:action="@{/logout}" method="post"> 
+	         <input name="logout" type="submit" value="Sign Out"/> 
+	      </form>
+   		</div>
+      
+   </body> 
+</html>
+
+<!--
+<h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]</h1>
+      <div th:if="${justRegistered}">
+        <h1 th:inline="text">Hello [[${username}]]!</h1>
+      </div>  
+  --> 
+

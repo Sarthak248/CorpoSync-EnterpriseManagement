@@ -33,6 +33,8 @@ public interface CustomerRepository extends JpaRepository<CustomerDetails, Strin
 	@Query("SELECT MAX(c.customerId) FROM CustomerDetails c")
 	public Object maximumExistingCustomerId();
 	
+	CustomerDetails findByCustomerId(String customerId);
+	
 	List<CustomerDetails> findByCustomerMobile(String customerMobile);
 	
 	List<CustomerDetails> findByEnterpriseId(String enterpriseId);

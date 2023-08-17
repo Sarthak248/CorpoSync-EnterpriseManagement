@@ -26,9 +26,10 @@ private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.c
        http 
            .csrf().disable() // disabling cross-site request forgery protection
            .authorizeRequests()
-               .antMatchers("/register**", "/forgot**").permitAll()
+               .antMatchers("/register**", "/forgot**", "/member**").permitAll()
                .antMatchers("/verify").hasAuthority("VERIFY_EMAIL")
                .antMatchers("/reset").hasAuthority("RESET_PASSWORD")
+               .antMatchers("/mobileverify").hasAuthority("MEMBER_LOGIN")
                .anyRequest().authenticated()
            .and() 
                .formLogin() 
