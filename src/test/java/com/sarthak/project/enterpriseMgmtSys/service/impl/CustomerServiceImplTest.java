@@ -14,10 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.IdGeneratorCustomer;
 import com.sarthak.project.enterpriseMgmtSys.repository.CardRepository;
 import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
+import com.sarthak.project.enterpriseMgmtSys.service.CardService;
 import com.sarthak.project.enterpriseMgmtSys.payload.CardDetailsDTO;
 import com.sarthak.project.enterpriseMgmtSys.payload.CustomerDetailsDTO;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
@@ -33,6 +36,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CustomerServiceImplTest {
+	private static final Logger logger = LoggerFactory.getLogger(CustomerServiceImplTest.class);	
 
     @Mock
     private CustomerRepository customerRepository;
@@ -48,6 +52,9 @@ public class CustomerServiceImplTest {
 
     @InjectMocks
     private CustomerServiceImpl customerService;
+    
+    @InjectMocks
+    private CardServiceImpl cardService;
 
     @BeforeEach
     public void setup() {
@@ -63,7 +70,7 @@ public class CustomerServiceImplTest {
             customerDetailsDTO.setCustomerName(null);
             customerDetailsDTO.setCustomerMobile("1234567890");
             customerDetailsDTO.setEnterpriseId("ABC");
-            
+            logger.info("Set bad request in CustServImplTest : testNewCustomer");
             testBadRequestScenario(customerDetailsDTO, null, StatusResponse.CREATE_REQUEST);
 //            // Call the service method
 //            ResponseDto response = customerService.newCustomer(customerDetailsDTO);
@@ -105,9 +112,10 @@ public class CustomerServiceImplTest {
         {
             // Create a CustomerDetailsDTO with invalid data
             CustomerDetailsDTO customerDetailsDTO = new CustomerDetailsDTO();
-            customerDetailsDTO.setCustomerName("asdkjlf KLDSJFL LKDJF dk KD*"); // Invalid name
+            customerDetailsDTO.setCustomerName("^^()+-*"); // Invalid name
             customerDetailsDTO.setCustomerMobile("1234567890");
             customerDetailsDTO.setEnterpriseId("ABC");
+            logger.info("Set invalid name in : failed request scenario : testNewCustomer");
 
             // Call the service method
             ResponseDto response = customerService.newCustomer(customerDetailsDTO);
@@ -130,6 +138,7 @@ public class CustomerServiceImplTest {
             customerDetailsDTO.setEnterpriseId("ABC");
             
             testBadRequestScenario(customerDetailsDTO, null, StatusResponse.GETALL_REQUEST);
+            logger.info("came from testBadReqScen : testGetAllCustomers");
 //            // Call the service method
 //            ResponseDto response = customerService.newCustomer(customerDetailsDTO);
 //            
@@ -146,10 +155,12 @@ public class CustomerServiceImplTest {
             mockCustomer1.setEnterpriseId("ABC");
             mockCustomers.add(mockCustomer1);
             
-            when(customerRepository.save(any())).thenReturn(null);
-            
+            when(customerRepository.save(any())).thenReturn(mockCustomer1);            
             when(customerRepository.findAll()).thenReturn(mockCustomers);
-
+            when(mapper.map(any(), eq(CustomerDetailsDTO.class))).thenReturn(new CustomerDetailsDTO());
+            
+            
+           
             List<CardDetails> mockCards = new ArrayList<>();
             CardDetails mockCard1 = new CardDetails();
             mockCard1.setCustomerId("CR00001");
@@ -159,12 +170,17 @@ public class CustomerServiceImplTest {
             mockCards.add(mockCard1);
             mockCustomer1.setListCards(mockCards);
             
-            
+            when(cardRepository.save(any())).thenReturn(mockCard1);
             when(cardRepository.findAll()).thenReturn(mockCards);
-            
-            // Mock the behavior of mapper
-            when(mapper.map(any(), eq(CustomerDetailsDTO.class))).thenReturn(new CustomerDetailsDTO());
+            when(mapper.map(any(), eq(CardDetailsDTO.class))).thenReturn(new CardDetailsDTO());
 
+            CardDetailsDTO mockCard1Dto = mapper.map(mockCard1, CardDetailsDTO.class);
+            
+            cardService.createCard(mockCard1Dto);
+
+            CustomerDetailsDTO mockCustomer1Dto = mapper.map(mockCustomer1, CustomerDetailsDTO.class);
+            
+            customerService.newCustomer(mockCustomer1Dto);
             // Call the service method
             ResponseDto response = customerService.getAllCustomers();
             List<CustomerDetailsDTO> allCustomers = (List<CustomerDetailsDTO>) response.getResult();

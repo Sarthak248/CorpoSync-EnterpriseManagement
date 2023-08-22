@@ -121,7 +121,7 @@ public class CustomerServiceImpl implements CustomerService {
 				logger.info("No cards in db yet");
 			}
 			else {
-				logger.info(String.format("CardSize: %s : T", allCards.size()));
+				logger.info(String.format("CardSize: %s", allCards.size()));
 				for (CardDetailsDTO card : allCards) {
 					if (card.getCustomerId().equalsIgnoreCase(customer.getCustomerId())) {
 						cardsOfCustomer.add(card);
