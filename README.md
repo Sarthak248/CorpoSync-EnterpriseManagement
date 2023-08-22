@@ -23,5 +23,7 @@ Core Java, Spring Boot, SQL, Postman, Git, Maven, JPA, JDBC, Spring security, JU
 
 ## PREVIEW
 
+### Logging In  
 ![img](/assets/imgs/user_login.png)  
+### Paginated Customers  
 ![img](/assets/imgs/customer_view.png)  
