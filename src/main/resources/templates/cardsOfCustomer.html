@@ -14,7 +14,7 @@
     	<h1 th:text="'Cards of Customer - ' + ${customerId}"></h1>
         
         <table border=1 class="table table-striped table-responsive-md">
-            <thead>
+            <thead  style="background-color: #00ffff;">
                 <tr>
                 	<!-- Sorting by Card Id -->
 					<th>
@@ -103,11 +103,11 @@
 		</div>
 		<div th:if="${fromCustomer}">
 	        <form th:action="@{/redirectToMemberView}" method="get">
-	    		<input name="index" type="submit" value="Back to Home Page"/> 
+	    		<input style="background-color: #00ffff;" name="index" type="submit" value="Back to Home Page"/> 
 		    </form>
 		    <p></p>
 			<form th:action="@{/logout}" method="post"> 
-		        <input name="logout" type="submit" value="Sign Out"/> 
+		        <input style="background-color: #00ffff;" name="logout" type="submit" value="Sign Out"/> 
 		    </form>
 		</div>
     </div>

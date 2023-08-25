@@ -8,6 +8,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 //import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.ResponseDto;
 import com.sarthak.project.enterpriseMgmtSys.GenericClass.StatusResponse;
+import com.sarthak.project.enterpriseMgmtSys.payload.CardDetailsDTO;
 //import com.sarthak.project.enterpriseMgmtSys.payload.CardDetailsDTO;
 import com.sarthak.project.enterpriseMgmtSys.payload.CustomerDetailsDTO;
 //import com.sarthak.project.enterpriseMgmtSys.repository.CustomerRepository;
@@ -150,12 +152,13 @@ public class CustomerController {
 									@PathVariable(value = "direction") String direction,
 								Model model, HttpSession session) {
 		ModelAndView modelAndView = new ModelAndView("cardsOfCustomer");
-		modelAndView.addObject("totalPages", customerService.getPages(StatusResponse.CARD_REQUEST,customerId));
+		int pages = customerService.getPages(StatusResponse.CARD_REQUEST,customerId);
+		Page<CardDetailsDTO> cardPage = customerService.findPaginatedCards(customerId,pageNo,StatusResponse.PAGE_SIZE,
+				sortField, direction);
+		modelAndView.addObject("totalPages", pages);
 		modelAndView.addObject("currentPage", pageNo);
-		modelAndView.addObject("totalItems", customerService.findPaginatedCards(customerId,pageNo,StatusResponse.PAGE_SIZE,
-				sortField, direction).getTotalElements());
-		modelAndView.addObject("cards",customerService.findPaginatedCards(customerId,pageNo,StatusResponse.PAGE_SIZE,
-				sortField, direction).getContent());
+		modelAndView.addObject("totalItems", cardPage.getTotalElements());
+		modelAndView.addObject("cards", cardPage.getContent());
 		modelAndView.addObject("emptyCells", customerService.getEmptyCells(StatusResponse.CARD_REQUEST,customerId));
 		
 		modelAndView.addObject("sortField", sortField);

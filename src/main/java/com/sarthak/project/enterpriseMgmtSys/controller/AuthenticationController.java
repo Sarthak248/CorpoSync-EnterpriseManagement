@@ -275,6 +275,7 @@ public class AuthenticationController {
 		   CustomerLoginDto customerLoginDto = (CustomerLoginDto) response.getResult(); 
 		   session.setAttribute("sessionCustomer", customerLoginDto);
 		   session.setAttribute("sessionCustomerId", customerLoginDto.getCustomerId());
+		   session.setAttribute("sessionCustomerName", customerLoginDto.getCustomerName());
 		   model.addAttribute("proceedToVerify", true);
 		   model.addAttribute("encodedMobile", customerLoginDto.getEncodedMobile());
 
@@ -297,6 +298,7 @@ public class AuthenticationController {
 	   } else if(response.getStatusCode().equalsIgnoreCase(StatusResponse.SUCCESS_STATUS_CODE)) {
 		   //success path
 		   model.addAttribute("customerId", (String) session.getAttribute("sessionCustomerId"));
+		   model.addAttribute("customerName", (String) session.getAttribute("sessionCustomerName"));
 		   session.setAttribute("fromCustomer", true);
 		   return "memberView";
 	   }

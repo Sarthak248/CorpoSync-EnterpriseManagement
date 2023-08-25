@@ -9,7 +9,7 @@
    </head>
    <body>
    		<div class="container my-2">
-		<h1 th:text="'Hello - ' + ${customerId}"></h1>
+		<h1 th:text="'Hello ' + ${customerName} + '!'"></h1>
 	      <p></p>
 	      <form th:action="@{/cardsOfCustomer}" method="get">
               <input type="hidden" name="customerId" th:value="${customerId}" />

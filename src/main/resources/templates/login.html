@@ -24,27 +24,27 @@
 	            <label>Password: <input type="password" placeholder="Enter Password" name="password" /></label>
 	         </div>
 	         <div>
-	            <input type="submit" value="Sign In" />
+	            <input style="background-color: #00ffff;" type="submit" value="Sign In" />
 	         </div>
 	      </form>
 	      <p></p>
 	      <form th:action="@{/forgot}" method="get">
 	         <div th:if="${param.error}">
 				<div th:if="${session.error}">
-				    <div><input type="submit" value="Forgot Password?" /></div>
+				    <div><input style="background-color: #00ffff;" type="submit" value="Forgot Password?" /></div>
 				</div>
 		      </div>
 	      </form>
 	      <p></p>
 	      <form th:action="@{/register}" method="get">
 	         <div>
-	        	<input type="submit" value="Don't have an account? Sign Up" />
+	        	<input style="background-color: #00ffff;" type="submit" value="Don't have an account? Sign Up" />
 	     	 </div>
 	      </form>
 	      <p></p>	      
 	      <form th:action="@{/member}" method="get">
 	         <div>
-	        	<input type="submit" value="Sign In as a Member Instead" />
+	        	<input style="background-color: #00ffff;" type="submit" value="Sign In as a Member Instead" />
 	     	 </div>
 	      </form>
    		</div>      

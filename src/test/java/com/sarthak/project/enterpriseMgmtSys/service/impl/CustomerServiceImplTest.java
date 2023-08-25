@@ -32,6 +32,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -206,7 +207,74 @@ public class CustomerServiceImplTest {
         }
     }
     
+    @Test
+    public void testGetCustomerById() {
+        // Create mock data
+        String customerId = "CR00001";
+        CustomerDetails mockCustomer = new CustomerDetails();
+        mockCustomer.setCustomerId(customerId);
+        // Set other mockCustomer properties
+        
+        // Set up behavior for customerRepository.findById
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(mockCustomer));
 
+        // Set up behavior for mapper.map
+        when(mapper.map(any(), eq(CustomerDetailsDTO.class))).thenReturn(new CustomerDetailsDTO());
+
+        // Set up behavior for cardRepository.findAll
+        List<CardDetails> mockCards = new ArrayList<>();
+        // Add mock cards to mockCards
+        when(cardRepository.findAll()).thenReturn(mockCards);
+
+        // Call the method under test
+        ResponseDto response = customerService.getCustomerById(customerId);
+
+        // Assertions
+        assertEquals(StatusResponse.SUCCESS_STATUS_CODE, response.getStatusCode());
+        assertEquals(StatusResponse.FETCHED_INDIVIDUAL_CUSTOMER, response.getMessage());
+        assertNotNull(response.getResult());
+
+        // Verify that customerRepository.findById was called
+        verify(customerRepository).findById(customerId);
+    }
+    
+    @Test
+    public void testUpdateCustomerById() {
+        // Create mock data
+        String customerId = "CR00001";
+        CustomerDetailsDTO mockCustomerDto = new CustomerDetailsDTO();
+        mockCustomerDto.setCustomerId(customerId);
+        // Set other mockCustomerDto properties
+
+        // Set up behavior for validRequest
+//        when(customerService.validRequest(eq(mockCustomerDto), eq(StatusResponse.UPDATE_REQUEST))).thenReturn(true);
+
+        // Set up behavior for customerRepository.findById
+        CustomerDetails existingCustomer = new CustomerDetails();
+        existingCustomer.setCustomerId(customerId);
+        // Set other existingCustomer properties
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(existingCustomer));
+
+        // Set up behavior for mapper.map
+        when(mapper.map(any(), eq(CustomerDetailsDTO.class))).thenReturn(new CustomerDetailsDTO());
+
+        // Set up behavior for cardRepository.findAll
+        List<CardDetails> mockCards = new ArrayList<>();
+        // Add mock cards to mockCards
+        when(cardRepository.findAll()).thenReturn(mockCards);
+
+        // Call the method under test
+        ResponseDto response = customerService.updateCustomerById(mockCustomerDto, customerId);
+
+        // Assertions
+        assertEquals(StatusResponse.SUCCESS_STATUS_CODE, response.getStatusCode());
+        assertEquals(StatusResponse.CUSTOMER_UPDATED, response.getMessage());
+        assertNotNull(response.getResult());
+
+        // Verify that customerRepository.findById was called
+        verify(customerRepository).findById(customerId);
+    }
+    
     // Bad request scenario - common to all
     private void testBadRequestScenario(CustomerDetailsDTO customerDetailsDTO, String customerId,
     									int requestCase) {
